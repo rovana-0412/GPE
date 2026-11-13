@@ -1,0 +1,95 @@
+
+@startuml
+title GPE - Diagramme de cas d'utilisation
+
+left to right direction
+skinparam backgroundColor #F8FAFC
+skinparam shadowing false
+skinparam packageStyle rectangle
+skinparam actorStyle awesome
+skinparam defaultFontName Arial
+
+skinparam usecase {
+  BorderColor #163B63
+  ArrowColor #475569
+  BackgroundColor #FFFFFF
+}
+
+actor "Administrateur général" as Admin
+actor "Gestionnaire du patrimoine" as GP
+actor "Responsable ministériel" as RM
+actor "Agent gestionnaire" as AG
+actor "Auditeur" as AUD
+
+rectangle "PLATEFORME DE GESTION DU PATRIMOINE DE L'ETAT" {
+
+  package "ADMINISTRATION" #DCEAFE {
+    usecase "Se connecter" as UC1
+    usecase "Gérer les utilisateurs\net les rôles" as UC2
+    usecase "Gérer les ministères\net les services" as UC3
+  }
+
+  package "GESTION DU PATRIMOINE" #D9F2E8 {
+    usecase "Enregistrer un bien" as UC4
+    usecase "Consulter les biens" as UC5
+    usecase "Modifier un bien" as UC6
+    usecase "Archiver un bien" as UC7
+  }
+
+  package "AFFECTATIONS ET TRANSFERTS" #FCE9C9 {
+    usecase "Affecter un bien" as UC8
+    usecase "Demander un transfert" as UC9
+    usecase "Valider ou refuser\nun transfert" as UC10
+  }
+
+  package "MAINTENANCE ET SUIVI" #EAE0F7 {
+    usecase "Déclarer une maintenance" as UC11
+    usecase "Suivre les maintenances" as UC12
+    usecase "Consulter le tableau de bord" as UC13
+    usecase "Générer des rapports" as UC14
+    usecase "Consulter l'historique" as UC15
+  }
+}
+
+Admin --> UC1
+Admin --> UC2
+Admin --> UC3
+
+GP --> UC1
+GP --> UC3
+GP --> UC4
+GP --> UC5
+GP --> UC6
+GP --> UC7
+GP --> UC8
+GP --> UC9
+GP --> UC10
+GP --> UC11
+GP --> UC12
+GP --> UC13
+GP --> UC14
+GP --> UC15
+
+RM --> UC1
+RM --> UC5
+RM --> UC10
+RM --> UC12
+RM --> UC13
+RM --> UC14
+RM --> UC15
+
+AG --> UC1
+AG --> UC4
+AG --> UC5
+AG --> UC6
+AG --> UC8
+AG --> UC9
+AG --> UC11
+AG --> UC12
+
+AUD --> UC1
+AUD --> UC5
+AUD --> UC14
+AUD --> UC15
+
+@enduml

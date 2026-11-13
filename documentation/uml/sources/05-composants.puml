@@ -1,0 +1,62 @@
+
+@startuml
+title GPE - Diagramme de composants
+
+skinparam backgroundColor #F8FAFC
+skinparam shadowing false
+skinparam componentStyle rectangle
+skinparam defaultFontName Arial
+skinparam linetype ortho
+
+skinparam component {
+    BorderColor #163B63
+    BackgroundColor #DCEAFE
+    FontColor #163B63
+}
+
+skinparam database {
+    BorderColor #16856B
+    BackgroundColor #D9F2E8
+}
+
+package "COUCHE PRESENTATION" #DCEAFE {
+    component "Interface Web\nLaravel Blade" as WEB
+}
+
+package "COUCHE COMMUNICATION" #FCE9C9 {
+    component "API Gateway\nPoint d'entrée REST" as API
+}
+
+package "MICROSERVICES METIER" {
+
+    component "Service\nAuthentification" as AUTH #DCEAFE
+
+    component "Service\nPatrimoine" as PATR #D9F2E8
+
+    component "Service\nAffectations et Transferts" as MOUV #FCE9C9
+
+    component "Service\nMaintenance et Reporting" as MAINT #EAE0F7
+}
+
+package "COUCHE DONNEES" #D9F2E8 {
+    database "Base PostgreSQL\nAuthentification" as DBA
+    database "Base PostgreSQL\nPatrimoine" as DBP
+    database "Base PostgreSQL\nMouvements" as DBM
+    database "Base PostgreSQL\nMaintenance" as DBMA
+}
+
+WEB --> API : Requêtes HTTP
+API --> AUTH : Authentification
+API --> PATR : Gestion des biens
+API --> MOUV : Affectations et transferts
+API --> MAINT : Maintenance et rapports
+
+AUTH --> DBA : Lecture / écriture
+PATR --> DBP : Lecture / écriture
+MOUV --> DBM : Lecture / écriture
+MAINT --> DBMA : Lecture / écriture
+
+MOUV ..> PATR : Vérification du bien
+MAINT ..> PATR : Consultation des biens
+
+@enduml

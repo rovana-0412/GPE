@@ -1,0 +1,65 @@
+
+@startuml
+title GPE - Diagramme de séquence : Transfert d'un bien
+
+autonumber
+skinparam backgroundColor #F8FAFC
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam sequence {
+    ArrowColor #163B63
+    LifeLineBorderColor #64748B
+    LifeLineBackgroundColor #F1F5F9
+    ParticipantBorderColor #163B63
+    ParticipantBackgroundColor #DCEAFE
+    ActorBorderColor #163B63
+    ActorBackgroundColor #DCEAFE
+}
+
+actor "Agent gestionnaire" as Agent
+actor "Responsable ministériel" as Responsable
+
+boundary "Interface GPE" as Interface
+control "Service Transfert" as ST
+control "Service Patrimoine" as SP
+database "Base de données" as BD
+
+Agent -> Interface : Demander un transfert
+Interface -> ST : Soumettre la demande
+ST -> SP : Vérifier le bien et son affectation
+SP -> BD : Rechercher le bien
+BD --> SP : Informations du bien
+SP --> ST : Résultat de la vérification
+
+alt Bien valide et affecté
+    ST -> BD : Enregistrer la demande
+    BD --> ST : Demande enregistrée
+    ST --> Interface : Confirmer la demande
+    Interface --> Agent : Afficher la confirmation
+
+    Interface -> Responsable : Transmettre la demande
+    Responsable -> Interface : Examiner la demande
+    Responsable -> Interface : Accepter ou refuser
+    Interface -> ST : Transmettre la décision
+
+    alt Transfert accepté
+        ST -> SP : Exécuter le transfert
+        SP -> BD : Clôturer l'ancienne affectation
+        SP -> BD : Créer la nouvelle affectation
+        BD --> SP : Opérations enregistrées
+        SP --> ST : Transfert effectué
+        ST -> BD : Enregistrer la validation
+        ST --> Interface : Confirmer le transfert
+        Interface --> Agent : Afficher le succès
+    else Transfert refusé
+        ST -> BD : Enregistrer le refus
+        ST --> Interface : Confirmer le refus
+        Interface --> Agent : Afficher le motif du refus
+    end
+
+else Bien invalide ou sans affectation active
+    ST --> Interface : Signaler une erreur
+    Interface --> Agent : Afficher le motif du rejet
+end
+
+@enduml

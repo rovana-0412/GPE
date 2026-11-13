@@ -1,0 +1,77 @@
+
+@startuml
+title GPE - Diagramme d'activité : Enregistrement d'un bien
+
+skinparam backgroundColor #F8FAFC
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam activity {
+    BackgroundColor #DCEAFE
+    BorderColor #163B63
+    DiamondBackgroundColor #FCE9C9
+    DiamondBorderColor #E5A33B
+    StartColor #16856B
+    EndColor #B91C1C
+    BarColor #163B63
+}
+
+|Agent gestionnaire|
+start
+:Se connecter à GPE;
+:Ouvrir le module Patrimoine;
+:Choisir « Enregistrer un bien »;
+:Remplir le formulaire;
+:Soumettre les informations;
+
+|Système GPE|
+:Recevoir les informations;
+:Vérifier les champs obligatoires;
+
+if (Informations complètes ?) then (Oui)
+    :Vérifier la référence du bien;
+
+    if (Référence déjà utilisée ?) then (Non)
+        :Vérifier la catégorie;
+        :Enregistrer le bien dans la base de données;
+        :Générer la confirmation;
+        :Enregistrer l'opération dans l'historique;
+
+        |Agent gestionnaire|
+        :Consulter la confirmation;
+        :Consulter la fiche du bien;
+        stop
+
+    else (Oui)
+        :Signaler une référence déjà utilisée;
+    endif
+
+else (Non)
+    :Signaler les champs manquants;
+endif
+
+|Agent gestionnaire|
+:Corriger les informations;
+:Soumettre à nouveau;
+
+|Système GPE|
+:Vérifier les informations corrigées;
+
+while (Informations toujours invalides ?) is (Oui)
+    :Afficher les erreurs;
+    |Agent gestionnaire|
+    :Corriger les informations;
+    :Soumettre à nouveau;
+    |Système GPE|
+    :Vérifier les informations;
+endwhile (Non)
+
+:Enregistrer le bien;
+:Enregistrer l'opération dans l'historique;
+:Confirmer l'enregistrement;
+
+|Agent gestionnaire|
+:Consulter la fiche du bien;
+stop
+
+@enduml
+

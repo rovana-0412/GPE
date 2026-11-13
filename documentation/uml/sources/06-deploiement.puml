@@ -1,0 +1,78 @@
+
+@startuml
+title GPE - Diagramme de déploiement
+
+skinparam backgroundColor #F8FAFC
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam componentStyle rectangle
+skinparam linetype ortho
+
+skinparam node {
+    BorderColor #163B63
+    BackgroundColor #DCEAFE
+}
+
+skinparam database {
+    BorderColor #16856B
+    BackgroundColor #D9F2E8
+}
+
+actor "Utilisateur" as USER
+
+node "Poste utilisateur" {
+    artifact "Navigateur Web\nChrome / Firefox" as BROWSER
+}
+
+node "Serveur d'application\nDocker Host" as HOST {
+
+    node "Conteneur Nginx" #DCEAFE {
+        artifact "Serveur Web\nNginx" as NGINX
+    }
+
+    node "Conteneur Laravel" #D9F2E8 {
+        artifact "Application Web\nLaravel Blade" as WEB
+    }
+
+    node "Conteneur API Gateway" #FCE9C9 {
+        artifact "API REST\nGateway" as API
+    }
+
+    node "Conteneur Authentification" #DCEAFE {
+        artifact "Microservice\nAuth" as AUTH
+    }
+
+    node "Conteneur Patrimoine" #D9F2E8 {
+        artifact "Microservice\nPatrimoine" as PATR
+    }
+
+    node "Conteneur Mouvements" #FCE9C9 {
+        artifact "Microservice\nAffectations et transferts" as MOUV
+    }
+
+    node "Conteneur Maintenance" #EAE0F7 {
+        artifact "Microservice\nMaintenance et Reporting" as MAINT
+    }
+
+    node "Conteneur PostgreSQL" #D9F2E8 {
+        database "Base de données\nPostgreSQL" as DB
+    }
+
+    node "Réseau Docker" as NETWORK
+}
+
+USER --> BROWSER
+BROWSER --> NGINX : HTTPS
+NGINX --> WEB : HTTP
+WEB --> API : Requêtes REST
+API --> AUTH : HTTP
+API --> PATR : HTTP
+API --> MOUV : HTTP
+API --> MAINT : HTTP
+
+AUTH --> DB : Connexion SQL
+PATR --> DB : Connexion SQL
+MOUV --> DB : Connexion SQL
+MAINT --> DB : Connexion SQL
+
+@enduml

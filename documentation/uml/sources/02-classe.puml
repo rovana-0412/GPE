@@ -1,0 +1,145 @@
+
+@startuml
+title GPE - Diagramme de classes
+
+skinparam backgroundColor #F8FAFC
+skinparam shadowing false
+skinparam classAttributeIconSize 0
+skinparam defaultFontName Arial
+skinparam linetype ortho
+
+skinparam class {
+  BorderColor #163B63
+  ArrowColor #475569
+  BackgroundColor #FFFFFF
+}
+
+package "ADMINISTRATION" #DCEAFE {
+  class Role {
+    - id : int
+    - nom : string
+    - description : text
+    + creerRole()
+    + modifierRole()
+  }
+
+  class Utilisateur {
+    - id : int
+    - nom : string
+    - prenom : string
+    - email : string
+    - motDePasseHash : string
+    - statut : string
+    + seConnecter()
+    + modifierProfil()
+    + desactiverCompte()
+  }
+
+  class Ministere {
+    - id : int
+    - nom : string
+    - sigle : string
+    - description : text
+    + ajouterMinistere()
+    + modifierMinistere()
+  }
+
+  class Service {
+    - id : int
+    - nom : string
+    - code : string
+    - localisation : string
+    + ajouterService()
+    + modifierService()
+  }
+}
+
+package "GESTION DU PATRIMOINE" #D9F2E8 {
+  class Categorie {
+    - id : int
+    - nom : string
+    - description : text
+    + creerCategorie()
+    + modifierCategorie()
+  }
+
+  class Bien {
+    - id : int
+    - reference : string
+    - designation : string
+    - description : text
+    - dateAcquisition : date
+    - valeurAcquisition : decimal
+    - etat : string
+    - statut : string
+    + enregistrer()
+    + modifier()
+    + consulter()
+    + archiver()
+  }
+}
+
+package "AFFECTATIONS ET TRANSFERTS" #FCE9C9 {
+  class Affectation {
+    - id : int
+    - dateDebut : date
+    - dateFin : date
+    - motif : text
+    - statut : string
+    + creerAffectation()
+    + cloturerAffectation()
+  }
+
+  class Transfert {
+    - id : int
+    - dateDemande : date
+    - dateValidation : date
+    - motif : text
+    - statut : string
+    + demanderTransfert()
+    + validerTransfert()
+    + refuserTransfert()
+  }
+}
+
+package "MAINTENANCE ET SUIVI" #EAE0F7 {
+  class Maintenance {
+    - id : int
+    - dateDeclaration : date
+    - description : text
+    - cout : decimal
+    - statut : string
+    + declarer()
+    + mettreAJour()
+    + cloturer()
+  }
+
+  class HistoriqueOperation {
+    - id : int
+    - typeOperation : string
+    - dateOperation : datetime
+    - description : text
+    + enregistrerOperation()
+    + consulterHistorique()
+  }
+}
+
+Role "1" -- "0..*" Utilisateur : attribué à
+Ministere "1" -- "0..*" Service : possède
+Service "0..1" -- "0..*" Utilisateur : rattachement
+
+Categorie "1" -- "0..*" Bien : catégorise
+
+Bien "1" -- "0..*" Affectation : historique
+Service "1" -- "0..*" Affectation : reçoit
+
+Bien "1" -- "0..*" Transfert : concerne
+Service "1" -- "0..*" Transfert : origine
+Service "1" -- "0..*" Transfert : destination
+
+Bien "1" -- "0..*" Maintenance : fait l'objet de
+
+Utilisateur "1" -- "0..*" HistoriqueOperation : effectue
+Bien "0..1" -- "0..*" HistoriqueOperation : concerne
+
+@enduml
