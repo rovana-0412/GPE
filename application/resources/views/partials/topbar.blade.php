@@ -1,11 +1,6 @@
 @php
     $utilisateur = Auth::user();
-    $initiales = mb_strtoupper(
-        collect(explode(' ', trim($utilisateur->name)))
-            ->filter()->take(2)
-            ->map(fn ($mot) => mb_substr($mot, 0, 1))
-            ->implode('')
-    );
+    $initiales = mb_strtoupper(mb_substr($utilisateur->name, 0, 1));
 @endphp
 
 <header class="topbar">
@@ -14,7 +9,27 @@
         <x-icon name="menu"/>
     </button>
 
-    <h2 class="topbar__title">@yield('title')</h2>
+    <div class="topbar__dropdown">
+        Tableau de bord
+    </div>
+
+    <div class="topbar__search">
+        <x-icon name="search"/>
+        <input type="text" placeholder="Rechercher dans GPE..." aria-label="Rechercher">
+    </div>
+
+    <div class="topbar__actions">
+        <button class="topbar__icon-btn" aria-label="Notifications">
+            <x-icon name="bell"/>
+        </button>
+        <button class="topbar__icon-btn" aria-label="Messages">
+            <x-icon name="chat"/>
+        </button>
+        <button class="btn btn--primary">
+            <x-icon name="plus"/>
+            Ajouter un bien
+        </button>
+    </div>
 
     <div class="topbar__user">
         <div class="topbar__who">
