@@ -44,6 +44,7 @@
 - ✅ `.dockerignore` des trois API excluent `vendor`, `node_modules`, `.env` et `storage/logs`
 - ✅ Tests des trois services passés avec une clé de test éphémère (avertissements existants liés au `.env` absent)
 - ✅ Compose, la passerelle, PostgreSQL et `.env.example` configurés pour le réseau interne sur 8000
+- ✅ PostgreSQL publié sur 5433 par défaut, avec surcharge `POSTGRES_HOST_PORT` pour les environnements où le port est déjà occupé
 - ✅ Web en build multi-étapes `node:22-alpine` / `php:8.2-cli`, sans migration
 - ✅ Web sans variables `DB_*`; le flux login conserve le JWT en session et le dashboard utilise cette session
 - ✅ Tests web : 14 assertions, aucun échec (avertissements existants lorsque le `.env` local est absent)

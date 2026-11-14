@@ -22,7 +22,7 @@ services:
       POSTGRES_USER: "${DB_USERNAME:-gpe_user}"
       POSTGRES_PASSWORD: "${DB_PASSWORD:?Définir DB_PASSWORD dans le fichier .env}"
     ports:
-      - "5433:5432"
+      - "${POSTGRES_HOST_PORT:-5433}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
