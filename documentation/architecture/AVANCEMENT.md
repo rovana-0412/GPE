@@ -44,7 +44,10 @@
 - ✅ `.dockerignore` des trois API excluent `vendor`, `node_modules`, `.env` et `storage/logs`
 - ✅ Tests des trois services passés avec une clé de test éphémère (avertissements existants liés au `.env` absent)
 - ✅ Compose, la passerelle, PostgreSQL et `.env.example` configurés pour le réseau interne sur 8000
-- ⏳ Finaliser le Dockerfile web et l'idempotence des seeders
+- ✅ Web en build multi-étapes `node:22-alpine` / `php:8.2-cli`, sans migration
+- ✅ Web sans variables `DB_*`; le flux login conserve le JWT en session et le dashboard utilise cette session
+- ✅ Tests web : 14 assertions, aucun échec (avertissements existants lorsque le `.env` local est absent)
+- ⏳ Vérifier l'idempotence de tous les seeders
 - ⏳ Vérifier le démarrage complet et le login sur http://localhost:8080
 
 **Note**: Le build Docker prend beaucoup de temps à cause de l'import du contexte (vendor/ node_modules). Ajout de .dockerignore pour optimiser.

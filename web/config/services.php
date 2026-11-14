@@ -2,6 +2,10 @@
 
 return [
 
+    'auth' => [
+        'url' => env('AUTH_URL', 'http://auth-service:8000'),
+    ],
+
     /*
     |--------------------------------------------------------------------------
     | Third Party Services

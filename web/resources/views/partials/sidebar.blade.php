@@ -1,3 +1,9 @@
+@php
+    $utilisateur = session('user', []);
+    $nom = $utilisateur['name'] ?? 'Utilisateur';
+    $role = $utilisateur['role'] ?? 'Utilisateur';
+@endphp
+
 <aside class="sidebar" id="navigation" aria-label="Navigation principale">
     <div class="sidebar__brand">
         <x-logo :signature="false"/>
@@ -51,11 +57,11 @@
     <div class="sidebar__foot">
         <div class="topbar__user">
             <div class="topbar__who">
-                <p class="topbar__name">{{ Auth::user()->name }}</p>
-                <p class="topbar__role">{{ Auth::user()->role?->nom ?? 'Utilisateur' }}</p>
+                <p class="topbar__name">{{ $nom }}</p>
+                <p class="topbar__role">{{ $role }}</p>
             </div>
             <div class="avatar" aria-hidden="true">
-                {{ mb_strtoupper(mb_substr(Auth::user()->name, 0, 1)) }}
+                {{ mb_strtoupper(mb_substr($nom, 0, 1)) }}
             </div>
         </div>
         <form action="{{ route('logout') }}" method="POST" class="mt-3">

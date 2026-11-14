@@ -36,15 +36,15 @@ class DashboardController extends Controller
         $operations = collect([
             (object) [
                 'id' => 1,
-                'type_operation' => 'affectation',
-                'date_operation' => now()->subDays(1),
+                'action' => 'affectation.creee',
+                'created_at' => now()->subDays(1),
                 'utilisateur' => (object) ['name' => 'Jean Kouassi'],
                 'bien' => (object) ['designation' => 'Toyota Hilux'],
             ],
             (object) [
                 'id' => 2,
-                'type_operation' => 'transfert',
-                'date_operation' => now()->subDays(2),
+                'action' => 'transfert.demande',
+                'created_at' => now()->subDays(2),
                 'utilisateur' => (object) ['name' => 'Marie Tchao'],
                 'bien' => (object) ['designation' => 'Imprimante HP'],
             ],

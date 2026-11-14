@@ -4,7 +4,7 @@
 
 @section('content')
 @php
-    $prenom = explode(' ', trim(Auth::user()->name))[0];
+    $prenom = explode(' ', trim(session('user.name', 'Utilisateur')))[0];
     $totalBiens = max($statistiques['biens'], 1);
     $immobilier = $parType['immobilier'] ?? 0;
     $mobilier = $parType['mobilier'] ?? 0;

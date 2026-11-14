@@ -3,9 +3,11 @@
 .env
 .env.*
 database/database.sqlite
+node_modules
 vendor
 storage/*.key
 storage/pail
+storage/logs
 public/build
 public/hot
 public/storage

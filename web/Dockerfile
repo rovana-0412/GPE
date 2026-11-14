@@ -1,42 +1,39 @@
-FROM php:8.2-fpm
+FROM node:22-alpine AS assets
 
-# Install dependencies
-RUN apt-get update && apt-get install -y \
-    git \
+WORKDIR /app
+
+COPY package.json package-lock.json ./
+RUN npm ci
+
+COPY vite.config.js ./
+COPY resources ./resources
+COPY public ./public
+RUN npm run build
+
+FROM php:8.2-cli
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
-    libpng-dev \
-    libonig-dev \
-    libxml2-dev \
-    libpq-dev \
-    zip \
     unzip \
-    nodejs \
-    npm
+    && rm -rf /var/lib/apt/lists/*
 
-# Install PostgreSQL extension
-RUN docker-php-ext-install pdo pdo_pgsql
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
-# Install Composer
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
-
-# Set working directory
 WORKDIR /var/www/html
 
-# Copy application
-COPY . /var/www/html
+COPY composer.json composer.lock ./
+RUN composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader --no-scripts
 
-# Install dependencies
-RUN composer install --no-dev --optimize-autoloader
+COPY . .
+COPY --from=assets /app/public/build ./public/build
+RUN composer dump-autoload --no-dev --optimize \
+    && mkdir -p storage/framework/cache/data storage/framework/sessions storage/framework/testing storage/framework/views storage/logs bootstrap/cache \
+    && chown -R www-data:www-data storage bootstrap/cache
 
-# Build assets
-RUN npm install && npm run build
+ENV PHP_CLI_SERVER_WORKERS=4
 
-# Set permissions
-RUN chown -R www-data:www-data /var/www/html \
-    && chmod -R 755 /var/www/html/storage \
-    && chmod -R 755 /var/www/html/bootstrap/cache
+EXPOSE 8000
 
-# Expose port
-EXPOSE 9003
+USER www-data
 
-CMD ["php-fpm"]
+CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8000"]

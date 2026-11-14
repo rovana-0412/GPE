@@ -26,7 +26,7 @@ class AuthController extends Controller
         ]);
 
         // Appeler l'API auth-service
-        $response = Http::post(env('AUTH_URL') . '/api/login', [
+        $response = Http::post(config('services.auth.url') . '/api/login', [
             'email' => $credentials['email'],
             'password' => $credentials['password'],
         ]);

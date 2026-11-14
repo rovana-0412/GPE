@@ -1,6 +1,8 @@
 @php
-    $utilisateur = Auth::user();
-    $initiales = mb_strtoupper(mb_substr($utilisateur->name, 0, 1));
+    $utilisateur = session('user', []);
+    $nom = $utilisateur['name'] ?? 'Utilisateur';
+    $role = $utilisateur['role'] ?? 'Utilisateur';
+    $initiales = mb_strtoupper(mb_substr($nom, 0, 1));
 @endphp
 
 <header class="topbar">
@@ -33,8 +35,8 @@
 
     <div class="topbar__user">
         <div class="topbar__who">
-            <p class="topbar__name">{{ $utilisateur->name }}</p>
-            <p class="topbar__role">{{ $utilisateur->role?->nom ?? 'Utilisateur' }}</p>
+            <p class="topbar__name">{{ $nom }}</p>
+            <p class="topbar__role">{{ $role }}</p>
         </div>
         <div class="avatar" aria-hidden="true">{{ $initiales }}</div>
     </div>
