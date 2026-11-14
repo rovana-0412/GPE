@@ -41,6 +41,7 @@
 
 #### ⏳ a4 — Docker Compose et login
 - ✅ Dockerfiles des trois API utilisent PHP CLI sur le port 8000 et migrent/seedent au démarrage
+- ✅ `artisan serve --no-reload` permet d'utiliser `PHP_CLI_SERVER_WORKERS=4`
 - ✅ `.dockerignore` des trois API excluent `vendor`, `node_modules`, `.env` et `storage/logs`
 - ✅ Tests des trois services passés avec une clé de test éphémère (avertissements existants liés au `.env` absent)
 - ✅ Compose, la passerelle, PostgreSQL et `.env.example` configurés pour le réseau interne sur 8000
