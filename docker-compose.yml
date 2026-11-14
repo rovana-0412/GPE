@@ -8,7 +8,9 @@ services:
       POSTGRES_USER: gpe_user
       POSTGRES_PASSWORD: gpe_password_dev
     ports:
-      - "5432:5432"
+      # Port hote 5433 : le service PostgreSQL natif de Windows occupe le 5432.
+      # Adapter DB_PORT dans application/.env en consequence.
+      - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
