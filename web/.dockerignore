@@ -1,0 +1,11 @@
+.git
+.gitignore
+.env
+.env.*
+database/database.sqlite
+vendor
+storage/*.key
+storage/pail
+public/build
+public/hot
+public/storage
