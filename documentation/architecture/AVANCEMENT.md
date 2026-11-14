@@ -49,7 +49,8 @@
 - ✅ Tests web : 14 assertions, aucun échec (avertissements existants lorsque le `.env` local est absent)
 - ✅ `auth-service` lit le secret JWT depuis `config()` ; test login/JWT adapté à cette configuration
 - ✅ Seeder patrimoine-service idempotent via `updateOrCreate`
-- ⏳ Vérifier l'idempotence du seeder mouvements-service
+- ✅ Seeder mouvements-service idempotent via `updateOrCreate`
+- ⏳ Construire et démarrer l'ensemble Compose, puis vérifier le login HTTP
 - ⏳ Vérifier le démarrage complet et le login sur http://localhost:8080
 
 **Note**: Le build Docker prend beaucoup de temps à cause de l'import du contexte (vendor/ node_modules). Ajout de .dockerignore pour optimiser.
