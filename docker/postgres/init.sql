@@ -10,11 +10,11 @@ CREATE DATABASE gpe_patrimoine;
 -- Base de données pour mouvements-service
 CREATE DATABASE gpe_mouvements;
 
--- Base de données pour web (optionnel, si besoin)
-CREATE DATABASE gpe_web;
+-- Base de données réservée aux tests
+CREATE DATABASE gpe_test;
 
 -- Permissions
 GRANT ALL PRIVILEGES ON DATABASE gpe_auth TO gpe_user;
 GRANT ALL PRIVILEGES ON DATABASE gpe_patrimoine TO gpe_user;
 GRANT ALL PRIVILEGES ON DATABASE gpe_mouvements TO gpe_user;
-GRANT ALL PRIVILEGES ON DATABASE gpe_web TO gpe_user;
+GRANT ALL PRIVILEGES ON DATABASE gpe_test TO gpe_user;

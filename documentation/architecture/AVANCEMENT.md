@@ -14,11 +14,11 @@
 ### Progression du jalon (a)
 
 #### ✅ a1 — Infrastructure Docker et PostgreSQL
-- ✅ `docker/postgres/init.sql` : initialisation PostgreSQL avec bases `gpe_auth`, `gpe_patrimoine`, `gpe_mouvements`, `gpe_web`
-- ✅ `docker-compose.yml` à la racine : conteneurs `postgres`, les quatre applications et la passerelle Nginx
-- ✅ `docker/gateway/nginx.conf` : routage HTTP vers les services et le web
+- ✅ `docker/postgres/init.sql` : initialisation des bases `gpe_auth`, `gpe_patrimoine`, `gpe_mouvements` et `gpe_test`
+- ✅ `docker-compose.yml` à la racine : variables partagées, secrets requis, healthchecks et services sans `container_name`
+- ✅ `docker/gateway/nginx.conf` : routage HTTP sur le port 8000, conservation de l'hôte et du port d'origine
 - ✅ Dockerfiles des trois API en `php:8.2-cli`, écoute sur 8000 et migrations/seed au démarrage
-- ✅ `.env.example` à la racine sans secret ; bases applicatives séparées
+- ✅ `.env.example` à la racine sans secret ; le web ne reçoit aucune variable `DB_*`
 
 #### ✅ a2 — auth-service (commit f36f92e)
 - ✅ Migrations : `roles` et `users` (sans FK inter-services)
@@ -43,7 +43,8 @@
 - ✅ Dockerfiles des trois API utilisent PHP CLI sur le port 8000 et migrent/seedent au démarrage
 - ✅ `.dockerignore` des trois API excluent `vendor`, `node_modules`, `.env` et `storage/logs`
 - ✅ Tests des trois services passés avec une clé de test éphémère (avertissements existants liés au `.env` absent)
-- ⏳ Finaliser la passerelle, Compose, PostgreSQL, le Dockerfile web et l'idempotence des seeders
+- ✅ Compose, la passerelle, PostgreSQL et `.env.example` configurés pour le réseau interne sur 8000
+- ⏳ Finaliser le Dockerfile web et l'idempotence des seeders
 - ⏳ Vérifier le démarrage complet et le login sur http://localhost:8080
 
 **Note**: Le build Docker prend beaucoup de temps à cause de l'import du contexte (vendor/ node_modules). Ajout de .dockerignore pour optimiser.
