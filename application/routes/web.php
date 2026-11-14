@@ -3,10 +3,11 @@
 use App\Http\Controllers\DashboardController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
+use Illuminate\Support\Facades\Auth;
 
 // Page d'accueil
 Route::get('/', function () {
-    return view('welcome');
+    return redirect()->route(Auth::check() ? 'dashboard' : 'login');
 })->name('accueil');
 
 // Authentification
