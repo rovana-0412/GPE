@@ -1,0 +1,155 @@
+/* GPE - Page de connexion "Patrimoine National" */
+
+.auth {
+    display: grid;
+    grid-template-columns: minmax(24rem, 42%) 1fr;
+    min-height: 100vh;
+    background: var(--color-bg);
+}
+
+/* ---- Panneau institutionnel (gauche) -------------------------------- */
+
+.auth__aside {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: var(--space-7);
+    padding: var(--space-7) var(--space-8);
+    background: var(--color-primary);
+    color: var(--color-surface);
+    overflow: hidden;
+}
+
+/* Motif geometrique discret, inspire des traditions togolaises */
+.auth__aside::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='96' height='96' viewBox='0 0 96 96'%3E%3Cg fill='none' stroke='%23D4A72C' stroke-opacity='0.10'%3E%3Cpath d='M48 8 88 48 48 88 8 48Z'/%3E%3Cpath d='M48 28 68 48 48 68 28 48Z'/%3E%3C/g%3E%3C/svg%3E");
+    pointer-events: none;
+}
+
+.auth__aside > * { position: relative; }
+
+.auth__brand { color: var(--color-accent); }
+.auth__brand .logo__word { color: var(--color-surface); }
+.auth__brand .logo__sig { color: color-mix(in srgb, var(--or-clair) 75%, transparent); }
+
+.auth__pitch { max-width: 34ch; }
+.auth__pitch h1 {
+    margin: var(--space-3) 0 var(--space-4);
+    font-size: var(--text-3xl);
+    font-weight: 500;
+    color: var(--color-surface);
+}
+.auth__pitch p { color: color-mix(in srgb, var(--ecru) 78%, transparent); }
+
+.auth__pitch .eyebrow { color: var(--color-accent); }
+
+.auth__foot {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding-top: var(--space-4);
+    border-top: 1px solid var(--color-nav-line);
+    font-size: var(--text-xs);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: color-mix(in srgb, var(--or-clair) 70%, transparent);
+}
+.auth__foot .icon { color: var(--color-accent); }
+
+/* ---- Zone du formulaire ---------------------------------------------- */
+
+.auth__main {
+    display: grid;
+    place-items: center;
+    padding: var(--space-6);
+}
+
+.auth__card {
+    width: 100%;
+    max-width: 26rem;
+}
+
+.auth__card-head { margin-bottom: var(--space-6); }
+.auth__card-head h2 {
+    margin-top: var(--space-2);
+    font-size: var(--text-2xl);
+    font-weight: 500;
+}
+.auth__card-head p { margin-top: var(--space-1); color: var(--color-text-muted); font-size: var(--text-sm); }
+
+.auth__form { display: grid; gap: var(--space-4); }
+
+.auth__error {
+    padding: var(--space-3) var(--space-4);
+    border: 1px solid color-mix(in srgb, var(--rouge) 35%, transparent);
+    border-radius: var(--radius-md);
+    background: var(--color-danger-soft);
+    color: var(--color-danger);
+    font-size: var(--text-sm);
+}
+
+.auth__field { display: grid; gap: var(--space-2); }
+.auth__field label { font-size: var(--text-sm); font-weight: 600; }
+
+.auth__input {
+    width: 100%;
+    padding: 0.75rem var(--space-4);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-md);
+    background: var(--color-surface);
+    font-size: var(--text-base);
+    transition: border-color var(--duration) var(--ease), box-shadow var(--duration) var(--ease);
+}
+.auth__input::placeholder { color: var(--color-text-muted); }
+.auth__input:focus {
+    outline: none;
+    border-color: var(--color-action);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--or) 35%, transparent);
+}
+.auth__field .error { color: var(--color-danger); font-size: var(--text-xs); }
+
+.auth__submit {
+    margin-top: var(--space-2);
+    width: 100%;
+    padding: 0.85rem var(--space-4);
+    border: none;
+    border-radius: var(--radius-md);
+    background: var(--color-primary);
+    color: var(--color-surface);
+    font-size: var(--text-base);
+    font-weight: 600;
+    cursor: pointer;
+    transition: background var(--duration) var(--ease);
+}
+.auth__submit:hover { background: var(--color-action-hover); }
+
+.auth__legal {
+    margin-top: var(--space-6);
+    padding-top: var(--space-4);
+    border-top: 1px solid var(--color-border);
+    text-align: center;
+    font-size: var(--text-xs);
+    color: var(--color-text-muted);
+    line-height: 1.7;
+}
+
+/* ---- Mobile : le panneau institutionnel devient un bandeau ----------- */
+
+@media (max-width: 62rem) {
+    .auth { grid-template-columns: 1fr; }
+
+    .auth__aside {
+        flex-direction: row;
+        align-items: center;
+        gap: var(--space-4);
+        padding: var(--space-4) var(--space-5);
+    }
+    .auth__pitch, .auth__foot { display: none; }
+    .auth__brand .logo__sig { display: none; }
+
+    .auth__main { padding: var(--space-5) var(--space-4); align-items: start; padding-top: var(--space-8); }
+}
