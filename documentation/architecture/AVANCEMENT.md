@@ -2,8 +2,9 @@
 
 > Branche : `feature/microservices`
 > Objectif : Docker + Nginx + auth-service + web (login fonctionnel sur http://localhost:8080)
+> Dernière validation : 14/11/2026
 
-## État actuel (commit 88bc4d6)
+## État actuel
 
 ### Structure
 |- `web/` : application Laravel monolithe déplacée (design togolais + dashboard commercial)
@@ -52,10 +53,14 @@
 - ✅ `auth-service` lit le secret JWT depuis `config()` ; test login/JWT adapté à cette configuration
 - ✅ Seeders des trois services idempotents, relancés deux fois après migration fraîche
 - ✅ Syntaxe d'apostrophes corrigée dans `RoleSeeder`, requise au démarrage auth
-- ⏳ Construire et démarrer l'ensemble Compose, puis vérifier le login HTTP
-- ⏳ Vérifier le démarrage complet et le login sur http://localhost:8080
+- ✅ Stack construit et démarré ; PostgreSQL et les quatre applications sont healthy
+- ✅ `POST /api/auth/login` via Nginx renvoie un JWT après redémarrage de la passerelle
+- ⚠️ `GET /connexion` répond 200, mais ne renvoie aucun `Set-Cookie`; la soumission web échoue donc avec 419
+- ⏳ Résoudre l'absence du cookie de session, puis valider le login complet sur http://localhost:8080
 
-**Note**: Le build Docker prend beaucoup de temps à cause de l'import du contexte (vendor/ node_modules). Ajout de .dockerignore pour optimiser.
+La validation Compose utilise le projet isolé `gpe-verify` et PostgreSQL hôte sur 5434, car le port 5433 est déjà occupé par une instance existante. Cette instance existante n'a pas été modifiée. Le redémarrage de Nginx après la recréation de ses services a été nécessaire pour rafraîchir ses adresses de backend.
+
+Le diagnostic du 419 montre que `SESSION_DRIVER=file`, `StartSession` et le groupe middleware `web` sont actifs. Aucun cookie n'est pourtant émis, y compris par un serveur PHP CLI à un seul worker ; la cause reste à identifier.
 
 ## Après le jalon (a)
 - Jalon (b) : patrimoine-service + dashboard réel
