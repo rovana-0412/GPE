@@ -1,415 +1,149 @@
+@extends('layouts.app')
 
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tableau de bord | GPE</title>
+@section('title', 'Vue générale')
 
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: Arial, sans-serif;
-        }
+@section('content')
+@php
+    $prenom = explode(' ', trim(Auth::user()->name))[0];
+    $totalBiens = max($statistiques['biens'], 1);
+    $immobilier = $parType['immobilier'] ?? 0;
+    $mobilier = $parType['mobilier'] ?? 0;
+    $maxCategorie = max($categories->max('biens_count') ?? 0, 1);
 
-        body {
-            background: #f1f5f9;
-            color: #1e293b;
-        }
+    $types = [
+        'bien.cree'            => ['Bien enregistré', 'accent'],
+        'bien.modifie'         => ['Informations modifiées', 'neutral'],
+        'affectation.creee'    => ['Affectation', 'success'],
+        'transfert.demande'    => ['Transfert demandé', 'action'],
+        'transfert.valide'     => ['Transfert validé', 'success'],
+        'maintenance.signalee' => ['Maintenance signalée', 'danger'],
+    ];
+@endphp
 
-        .layout {
-            display: flex;
-            min-height: 100vh;
-        }
+    <section class="welcome">
+        <p class="eyebrow">{{ now()->locale('fr')->translatedFormat('l j F Y') }} · République d'Aurélia</p>
+        <h1>Bonjour, {{ $prenom }}.</h1>
+        <p>Voici l'état du patrimoine de l'État, tel qu'il est enregistré aujourd'hui.</p>
+    </section>
 
-        /* Barre latérale */
-        .sidebar {
-            width: 250px;
-            background: #102a43;
-            color: white;
-            padding: 25px 18px;
-            flex-shrink: 0;
-        }
+    <div class="dash">
 
-        .brand {
-            padding: 5px 10px 28px;
-            border-bottom: 1px solid #334e68;
-        }
+        <section class="hero-stat dash__hero" aria-labelledby="hero-titre">
+            <svg class="hero-stat__art" viewBox="0 0 40 40" fill="none" stroke="currentColor"
+                 stroke-width="0.8" aria-hidden="true">
+                <path d="M5 16 20 6l15 10Z"/><path d="M8 20h24"/>
+                <path d="M12 23v9M20 23v9M28 23v9"/><path d="M6 35h28"/>
+            </svg>
 
-        .brand h2 {
-            font-size: 22px;
-            margin-bottom: 7px;
-        }
-
-        .brand p {
-            font-size: 12px;
-            color: #bcccdc;
-            line-height: 1.5;
-        }
-
-        .menu-title {
-            margin: 28px 10px 12px;
-            color: #9fb3c8;
-            font-size: 11px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .menu a {
-            display: block;
-            padding: 12px 13px;
-            margin-bottom: 6px;
-            border-radius: 7px;
-            color: #d9e2ec;
-            text-decoration: none;
-            font-size: 14px;
-            transition: 0.2s;
-        }
-
-        .menu a:hover,
-        .menu a.active {
-            background: #243f5a;
-            color: white;
-        }
-
-        .menu a.active {
-            border-left: 3px solid #60a5fa;
-        }
-
-        /* Zone principale */
-        .main {
-            flex: 1;
-            min-width: 0;
-        }
-
-        .topbar {
-            height: 75px;
-            background: white;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 35px;
-            border-bottom: 1px solid #e2e8f0;
-        }
-
-        .topbar h3 {
-            color: #102a43;
-            font-size: 18px;
-        }
-
-        .user-info {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .avatar {
-            width: 38px;
-            height: 38px;
-            background: #dbeafe;
-            color: #1d4ed8;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-        }
-
-        .user-name {
-            font-size: 13px;
-            font-weight: bold;
-        }
-
-        .user-role {
-            color: #64748b;
-            font-size: 11px;
-            margin-top: 4px;
-        }
-
-        .content {
-            padding: 35px;
-        }
-
-        .welcome {
-            margin-bottom: 28px;
-        }
-
-        .welcome h1 {
-            font-size: 25px;
-            color: #102a43;
-            margin-bottom: 8px;
-        }
-
-        .welcome p {
-            color: #64748b;
-            font-size: 14px;
-        }
-
-        /* Cartes statistiques */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-
-        .stat-card {
-            background: white;
-            padding: 23px;
-            border-radius: 10px;
-            border: 1px solid #e2e8f0;
-            box-shadow: 0 3px 10px rgba(15, 23, 42, 0.03);
-        }
-
-        .stat-label {
-            color: #64748b;
-            font-size: 13px;
-            margin-bottom: 14px;
-        }
-
-        .stat-value {
-            font-size: 29px;
-            font-weight: bold;
-            color: #102a43;
-        }
-
-        .stat-note {
-            margin-top: 10px;
-            color: #94a3b8;
-            font-size: 12px;
-        }
-
-        /* Bloc inférieur */
-        .section-card {
-            background: white;
-            padding: 25px;
-            border-radius: 10px;
-            border: 1px solid #e2e8f0;
-        }
-
-        .section-card h2 {
-            font-size: 17px;
-            color: #102a43;
-            margin-bottom: 20px;
-        }
-
-        .activity-list {
-            display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 15px;
-        }
-
-        .activity-item {
-            padding: 16px;
-            background: #f8fafc;
-            border-radius: 8px;
-            border: 1px solid #e2e8f0;
-        }
-
-        .activity-item span {
-            display: block;
-            color: #64748b;
-            font-size: 13px;
-            margin-bottom: 9px;
-        }
-
-        .activity-item strong {
-            font-size: 23px;
-            color: #102a43;
-        }
-
-        .logout-form {
-            margin-top: 30px;
-        }
-
-        .logout-button {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #52667a;
-            border-radius: 7px;
-            background: transparent;
-            color: #e2e8f0;
-            cursor: pointer;
-            font-size: 13px;
-        }
-
-        .logout-button:hover {
-            background: #243f5a;
-        }
-
-        /* Responsive */
-        @media (max-width: 900px) {
-            .sidebar {
-                width: 210px;
-            }
-
-            .stats-grid {
-                grid-template-columns: repeat(2, minmax(0, 1fr));
-            }
-        }
-
-        @media (max-width: 600px) {
-            .layout {
-                display: block;
-            }
-
-            .sidebar {
-                width: 100%;
-            }
-
-            .topbar {
-                padding: 0 18px;
-            }
-
-            .content {
-                padding: 22px 16px;
-            }
-
-            .stats-grid,
-            .activity-list {
-                grid-template-columns: 1fr;
-            }
-
-            .user-name {
-                font-size: 12px;
-            }
-        }
-    </style>
-</head>
-
-<body>
-
-<div class="layout">
-
-    <aside class="sidebar">
-
-        <div class="brand">
-            <h2>GPE</h2>
-            <p>Gestion du Patrimoine de l'État</p>
-        </div>
-
-        <p class="menu-title">Menu principal</p>
-
-        <nav class="menu">
-            <a href="{{ route('dashboard') }}" class="active">Tableau de bord</a>
-            <a href="#">Inventaire des biens</a>
-            <a href="#">Catégories</a>
-            <a href="#">Affectations</a>
-            <a href="#">Transferts</a>
-            <a href="#">Maintenances</a>
-        </nav>
-
-        <p class="menu-title">Administration</p>
-
-        <nav class="menu">
-            <a href="#">Ministères</a>
-            <a href="#">Services</a>
-            <a href="#">Utilisateurs</a>
-            <a href="#">Historique</a>
-        </nav>
-
-        <form action="{{ route('logout') }}" method="POST" class="logout-form">
-            @csrf
-            <button type="submit" class="logout-button">
-                Se déconnecter
-            </button>
-        </form>
-
-    </aside>
-
-    <main class="main">
-
-        <header class="topbar">
-
-            <h3>Administration GPE</h3>
-
-            <div class="user-info">
-                <div class="avatar">A</div>
-
-                <div>
-                    <p class="user-name">{{ Auth::user()->name }}</p>
-                    <p class="user-role">
-                        {{ Auth::user()->role?->nom ?? 'Utilisateur' }}
-                    </p>
-                </div>
+            <div>
+                <h2 id="hero-titre" class="eyebrow" style="font-family:var(--font-body)">Biens actifs du patrimoine</h2>
+                <p class="hero-stat__value num">{{ number_format($statistiques['biens'], 0, ',', ' ') }}</p>
             </div>
 
-        </header>
-
-        <section class="content">
-
-            <div class="welcome">
-                <h1>Bienvenue sur votre tableau de bord</h1>
-                <p>Voici un aperçu général du patrimoine de l'État.</p>
-            </div>
-
-            <div class="stats-grid">
-
-                <div class="stat-card">
-                    <p class="stat-label">Biens enregistrés</p>
-                    <p class="stat-value">{{ $statistiques['biens'] }}</p>
-                    <p class="stat-note">Biens actifs dans le patrimoine</p>
-                </div>
-
-                <div class="stat-card">
-                    <p class="stat-label">Catégories</p>
-                    <p class="stat-value">{{ $statistiques['categories'] }}</p>
-                    <p class="stat-note">Catégories de biens actives</p>
-                </div>
-
-                <div class="stat-card">
-                    <p class="stat-label">Ministères</p>
-                    <p class="stat-value">{{ $statistiques['ministeres'] }}</p>
-                    <p class="stat-note">Ministères enregistrés</p>
-                </div>
-
-                <div class="stat-card">
-                    <p class="stat-label">Services</p>
-                    <p class="stat-value">{{ $statistiques['services'] }}</p>
-                    <p class="stat-note">Services administratifs actifs</p>
-                </div>
-
-                <div class="stat-card">
-                    <p class="stat-label">Transferts en attente</p>
-                    <p class="stat-value">{{ $statistiques['transferts_en_attente'] }}</p>
-                    <p class="stat-note">Demandes à examiner</p>
-                </div>
-
-                <div class="stat-card">
-                    <p class="stat-label">Maintenances signalées</p>
-                    <p class="stat-value">{{ $statistiques['maintenances'] }}</p>
-                    <p class="stat-note">Interventions à suivre</p>
-                </div>
-
-            </div>
-
-            <div class="section-card">
-
-                <h2>État général de la plateforme</h2>
-
-                <div class="activity-list">
-
-                    <div class="activity-item">
-                        <span>Patrimoine immobilier et mobilier</span>
-                        <strong>{{ $statistiques['biens'] }}</strong>
-                    </div>
-
-                    <div class="activity-item">
-                        <span>Structures administratives</span>
-                        <strong>{{ $statistiques['ministeres'] + $statistiques['services'] }}</strong>
-                    </div>
-
-                </div>
-
-            </div>
-
+            <dl class="hero-stat__foot">
+                <div><dt>Immobilier</dt><dd class="num">{{ $immobilier }}</dd></div>
+                <div><dt>Mobilier</dt><dd class="num">{{ $mobilier }}</dd></div>
+                <div><dt>Valeur d'acquisition cumulée</dt><dd class="num">{{ number_format($statistiques['valeur_totale'], 0, ',', ' ') }}</dd></div>
+            </dl>
         </section>
 
-    </main>
+        <section class="panel dash__ledger" aria-labelledby="registre-titre">
+            <div class="panel__head">
+                <p class="eyebrow">Structure</p>
+                <h2 id="registre-titre" class="panel__title">Repères</h2>
+            </div>
 
-</div>
+            <dl class="ledger">
+                <div class="ledger__row"><dt>Catégories</dt><dd class="num">{{ $statistiques['categories'] }}</dd></div>
+                <div class="ledger__row"><dt>Ministères</dt><dd class="num">{{ $statistiques['ministeres'] }}</dd></div>
+                <div class="ledger__row"><dt>Services</dt><dd class="num">{{ $statistiques['services'] }}</dd></div>
+            </dl>
 
-</body>
-</html>
+            <p class="eyebrow ledger__sep">À traiter</p>
+            <dl class="ledger">
+                <div @class(['ledger__row', 'is-alert' => $statistiques['transferts_en_attente'] > 0])>
+                    <dt>Transferts en attente<small>Demandes à examiner</small></dt>
+                    <dd class="num">{{ $statistiques['transferts_en_attente'] }}</dd>
+                </div>
+                <div @class(['ledger__row', 'is-alert' => $statistiques['maintenances'] > 0])>
+                    <dt>Maintenances signalées<small>Interventions à suivre</small></dt>
+                    <dd class="num">{{ $statistiques['maintenances'] }}</dd>
+                </div>
+            </dl>
+        </section>
+
+        <section class="panel dash__timeline" aria-labelledby="activite-titre">
+            <div class="panel__head">
+                <p class="eyebrow">Traçabilité</p>
+                <h2 id="activite-titre" class="panel__title">Dernières opérations</h2>
+            </div>
+
+            @if ($operations->isEmpty())
+                <x-empty-state
+                    icon="clock"
+                    title="Aucune opération enregistrée"
+                    text="Les créations, affectations, transferts et maintenances apparaîtront ici dès qu'ils auront lieu."/>
+            @else
+                <ol class="timeline">
+                    @foreach ($operations as $operation)
+                        @php [$libelle, $ton] = $types[$operation->action] ?? [\Illuminate\Support\Str::headline($operation->action), 'neutral']; @endphp
+                        <li class="timeline__item timeline__item--{{ $ton }}">
+                            <span class="timeline__dot"></span>
+                            <p class="timeline__label">{{ $libelle }}</p>
+                            @if ($operation->description)
+                                <p class="timeline__desc">{{ $operation->description }}</p>
+                            @endif
+                            <p class="timeline__meta">
+                                {{ $operation->utilisateur?->name ?? 'Système' }}
+                                · {{ $operation->created_at->locale('fr')->diffForHumans() }}
+                            </p>
+                        </li>
+                    @endforeach
+                </ol>
+            @endif
+        </section>
+
+        <section class="panel dash__synthese" aria-labelledby="synthese-titre">
+            <div class="panel__head">
+                <p class="eyebrow">Synthèse</p>
+                <h2 id="synthese-titre" class="panel__title">Répartition du patrimoine</h2>
+            </div>
+
+            @if ($statistiques['biens'] === 0)
+                <x-empty-state icon="building" title="Aucun bien actif"
+                    text="La répartition par catégorie s'affichera dès que des biens seront enregistrés."/>
+            @else
+                <div class="split" role="img"
+                     aria-label="{{ $immobilier }} biens immobiliers, {{ $mobilier }} biens mobiliers">
+                    <span class="split__part--immobilier" style="width: {{ $immobilier / $totalBiens * 100 }}%"></span>
+                    <span class="split__part--mobilier" style="width: {{ $mobilier / $totalBiens * 100 }}%"></span>
+                </div>
+                <div class="split-legend">
+                    <span><i style="background:var(--color-primary)"></i>Immobilier · <b class="num">{{ $immobilier }}</b></span>
+                    <span><i style="background:color-mix(in srgb, var(--prune) 55%, var(--perle))"></i>Mobilier · <b class="num">{{ $mobilier }}</b></span>
+                </div>
+
+                @foreach (['immobilier' => 'Immobilier', 'mobilier' => 'Mobilier'] as $type => $titre)
+                    @php $groupe = $categories->where('type', $type); @endphp
+                    @if ($groupe->isNotEmpty())
+                        <div class="bars-group">
+                            <p class="eyebrow">{{ $titre }}</p>
+                            <ul class="bars">
+                                @foreach ($groupe as $categorie)
+                                    <li>
+                                        <span>{{ $categorie->nom }}</span>
+                                        <span class="bar bar--{{ $type }}" aria-hidden="true">
+                                            <span style="--w: {{ $categorie->biens_count / $maxCategorie * 100 }}%"></span>
+                                        </span>
+                                        <b class="num">{{ $categorie->biens_count }}</b>
+                                    </li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
+                @endforeach
+            @endif
+        </section>
+
+    </div>
+@endsection
