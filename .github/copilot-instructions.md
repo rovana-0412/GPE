@@ -39,3 +39,4 @@ Navigateur → passerelle Nginx (:8080) → `web` (Blade, design vert/or/rouge, 
 - Après chaque étape, mettre à jour `documentation/architecture/AVANCEMENT.md` puis s'arrêter et résumer
 
 - Fichiers PHP : `<?php` doit être le tout premier caractère (aucune ligne vide avant). Après tout lot de modifications, vérifier avec `curl.exe -s -D - -o NUL http://localhost:8080/connexion` que les en-têtes `Set-Cookie` sont bien présents.
+- Encodage et PHP : UTF-8 sans BOM, `<?php` en premier caractère.
