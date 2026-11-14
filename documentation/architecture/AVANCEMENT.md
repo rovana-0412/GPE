@@ -13,12 +13,12 @@
 
 ### Progression du jalon (a)
 
-#### ✅ a1 — Infrastructure Docker et PostgreSQL (commit 724a18e)
+#### ✅ a1 — Infrastructure Docker et PostgreSQL
 - ✅ `docker/postgres/init.sql` : initialisation PostgreSQL avec bases `gpe_auth`, `gpe_patrimoine`, `gpe_mouvements`, `gpe_web`
-- ✅ `docker-compose.yml` à la racine : conteneurs `postgres`, `auth-service`, `patrimoine-service`, `mouvements-service`, `web` (PHP-FPM), `gateway` (Nginx)
-- ✅ `docker/gateway/nginx.conf` : routing `/api/auth/*` → auth-service:9000, `/api/patrimoine/*` → patrimoine-service:9001, `/api/mouvements/*` → mouvements-service:9002, `/` → web:9003
-- ✅ Dockerfile par service : image PHP-FPM artisanal, avec copie du code
-- ✅ `.env.example` à la racine : `DB_PASSWORD`, `JWT_SECRET` (vides), `PATRIMOINE_URL`, `MOUVEMENTS_URL`, `AUTH_URL`
+- ✅ `docker-compose.yml` à la racine : conteneurs `postgres`, les quatre applications et la passerelle Nginx
+- ✅ `docker/gateway/nginx.conf` : routage HTTP vers les services et le web
+- ✅ Dockerfiles des trois API en `php:8.2-cli`, écoute sur 8000 et migrations/seed au démarrage
+- ✅ `.env.example` à la racine sans secret ; bases applicatives séparées
 
 #### ✅ a2 — auth-service (commit f36f92e)
 - ✅ Migrations : `roles` et `users` (sans FK inter-services)
@@ -39,11 +39,12 @@
 - ✅ Middleware `jwt.auth` pour protéger les routes web
 - ✅ Test PHPUnit : test login → session contient JWT, dashboard accessible
 
-#### ✅ a4 — Docker compose up --build (commit en préparation)
-- ✅ Ajout des fichiers .dockerignore pour optimiser les builds
-- ⏳ Vérifier que tous les conteneurs démarrent (build en cours, context import très lent)
-- ⏳ Vérifier login sur http://localhost:8080
-- ⏳ Git : commiter a4, tests verts
+#### ⏳ a4 — Docker Compose et login
+- ✅ Dockerfiles des trois API utilisent PHP CLI sur le port 8000 et migrent/seedent au démarrage
+- ✅ `.dockerignore` des trois API excluent `vendor`, `node_modules`, `.env` et `storage/logs`
+- ✅ Tests des trois services passés avec une clé de test éphémère (avertissements existants liés au `.env` absent)
+- ⏳ Finaliser la passerelle, Compose, PostgreSQL, le Dockerfile web et l'idempotence des seeders
+- ⏳ Vérifier le démarrage complet et le login sur http://localhost:8080
 
 **Note**: Le build Docker prend beaucoup de temps à cause de l'import du contexte (vendor/ node_modules). Ajout de .dockerignore pour optimiser.
 
