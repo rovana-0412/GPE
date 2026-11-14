@@ -13,6 +13,101 @@ services:
       - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+
+  auth-service:
+    build:
+      context: ./services/auth-service
+      dockerfile: Dockerfile
+    container_name: gpe_auth_service
+    restart: unless-stopped
+    environment:
+      DB_CONNECTION: pgsql
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_DATABASE: gpe_auth
+      DB_USERNAME: gpe_user
+      DB_PASSWORD: gpe_password_dev
+      JWT_SECRET: ${JWT_SECRET}
+    depends_on:
+      - postgres
+    expose:
+      - "9000"
+
+  patrimoine-service:
+    build:
+      context: ./services/patrimoine-service
+      dockerfile: Dockerfile
+    container_name: gpe_patrimoine_service
+    restart: unless-stopped
+    environment:
+      DB_CONNECTION: pgsql
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_DATABASE: gpe_patrimoine
+      DB_USERNAME: gpe_user
+      DB_PASSWORD: gpe_password_dev
+    depends_on:
+      - postgres
+    expose:
+      - "9001"
+
+  mouvements-service:
+    build:
+      context: ./services/mouvements-service
+      dockerfile: Dockerfile
+    container_name: gpe_mouvements_service
+    restart: unless-stopped
+    environment:
+      DB_CONNECTION: pgsql
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_DATABASE: gpe_mouvements
+      DB_USERNAME: gpe_user
+      DB_PASSWORD: gpe_password_dev
+    depends_on:
+      - postgres
+    expose:
+      - "9002"
+
+  web:
+    build:
+      context: ./web
+      dockerfile: Dockerfile
+    container_name: gpe_web
+    restart: unless-stopped
+    environment:
+      DB_CONNECTION: pgsql
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_DATABASE: gpe_web
+      DB_USERNAME: gpe_user
+      DB_PASSWORD: gpe_password_dev
+      AUTH_URL: http://auth-service:9000
+      PATRIMOINE_URL: http://patrimoine-service:9001
+      MOUVEMENTS_URL: http://mouvements-service:9002
+      JWT_SECRET: ${JWT_SECRET}
+    depends_on:
+      - postgres
+      - auth-service
+      - patrimoine-service
+      - mouvements-service
+    expose:
+      - "9003"
+
+  gateway:
+    image: nginx:alpine
+    container_name: gpe_gateway
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    volumes:
+      - ./docker/gateway/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - auth-service
+      - patrimoine-service
+      - mouvements-service
+      - web
 
 volumes:
   postgres_data:
