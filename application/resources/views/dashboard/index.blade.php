@@ -43,7 +43,7 @@
             <dl class="hero-stat__foot">
                 <div><dt>Immobilier</dt><dd class="num">{{ $immobilier }}</dd></div>
                 <div><dt>Mobilier</dt><dd class="num">{{ $mobilier }}</dd></div>
-                <div><dt>Valeur d'acquisition cumulée</dt><dd class="num">{{ number_format($statistiques['valeur_totale'], 0, ',', ' ') }}</dd></div>
+                <div><dt>Valeur d'acquisition cumulée</dt><dd><x-montant :value="$statistiques['valeur_totale']"/></dd></div>
             </dl>
         </section>
 
@@ -120,7 +120,7 @@
                 </div>
                 <div class="split-legend">
                     <span><i style="background:var(--color-primary)"></i>Immobilier · <b class="num">{{ $immobilier }}</b></span>
-                    <span><i style="background:color-mix(in srgb, var(--prune) 55%, var(--perle))"></i>Mobilier · <b class="num">{{ $mobilier }}</b></span>
+                    <span><i style="background:color-mix(in srgb, var(--or) 72%, var(--perle))"></i>Mobilier · <b class="num">{{ $mobilier }}</b></span>
                 </div>
 
                 @foreach (['immobilier' => 'Immobilier', 'mobilier' => 'Mobilier'] as $type => $titre)
