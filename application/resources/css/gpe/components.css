@@ -1,0 +1,72 @@
+/* GPE - Composants reutilisables */
+
+.icon { width: 1.15rem; height: 1.15rem; flex: none; }
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    padding: 0.65rem var(--space-4);
+    border: 1px solid transparent;
+    border-radius: var(--radius-md);
+    font-size: var(--text-sm);
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background var(--duration) var(--ease), border-color var(--duration) var(--ease);
+}
+.btn--primary { background: var(--color-action); color: var(--color-surface); }
+.btn--primary:hover { background: var(--color-action-hover); }
+
+.btn--on-dark {
+    width: 100%;
+    justify-content: flex-start;
+    background: transparent;
+    border-color: var(--color-nav-line);
+    color: color-mix(in srgb, var(--ecru) 85%, transparent);
+}
+.btn--on-dark:hover { background: color-mix(in srgb, var(--prune) 55%, transparent); color: var(--ecru); }
+
+.panel {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    padding: var(--space-5);
+}
+.panel__head { margin-bottom: var(--space-4); }
+.panel__title { font-size: var(--text-xl); margin-top: var(--space-1); }
+
+.logo { display: flex; align-items: center; gap: var(--space-3); color: var(--color-accent); }
+.logo__mark { width: 2.5rem; height: 2.5rem; flex: none; }
+.logo__word {
+    display: block;
+    font-family: var(--font-display);
+    font-size: 1.75rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    line-height: 1;
+}
+.logo__sig {
+    display: block;
+    margin-top: 0.3rem;
+    font-size: 0.62rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    line-height: 1.35;
+    color: color-mix(in srgb, var(--ecru) 70%, transparent);
+}
+
+.empty-state {
+    display: grid;
+    justify-items: center;
+    gap: var(--space-2);
+    padding: var(--space-7) var(--space-5);
+    border: 1px dashed var(--color-border-strong);
+    border-radius: var(--radius-md);
+    text-align: center;
+    color: var(--color-text-muted);
+}
+.empty-state .icon { width: 2rem; height: 2rem; color: var(--color-accent); }
+.empty-state__title { font-family: var(--font-display); font-size: var(--text-lg); color: var(--color-primary); }
+.empty-state__text { max-width: 32ch; font-size: var(--text-sm); }

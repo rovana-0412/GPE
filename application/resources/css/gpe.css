@@ -1,0 +1,9 @@
+/* GPE - Point d'entree des styles "Heritage & Modernite" */
+@import '@fontsource-variable/fraunces';
+@import '@fontsource-variable/inter';
+
+@import './gpe/tokens.css';
+@import './gpe/base.css';
+@import './gpe/layout.css';
+@import './gpe/components.css';
+@import './gpe/dashboard.css';

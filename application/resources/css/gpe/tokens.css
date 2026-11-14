@@ -1,0 +1,82 @@
+/* ==========================================================================
+   GPE - Tokens de design "Heritage & Modernite"
+   Source unique de verite : couleurs, typographie, espacements.
+   ========================================================================== */
+
+:root {
+    /* ---- Palette de marque (imposee) ---------------------------------- */
+    --aubergine:   #35243F;
+    --prune:       #523B5D;
+    --champagne:   #D6BE91;
+    --terracotta:  #B96852;
+    --perle:       #F1F0EE;
+    --ecru:        #FCFBF8;
+    --anthracite:  #29262C;
+    --gris-doux:   #85818A;
+    --rouge-doux:  #B94D55;
+    --vert-doux:   #477B62;
+
+    /* ---- Roles semantiques (a utiliser dans les composants) ----------- */
+    --color-bg:        var(--perle);
+    --color-surface:   var(--ecru);
+    --color-text:      var(--anthracite);
+    --color-primary:   var(--aubergine);
+    --color-nav:       var(--prune);
+    --color-accent:    var(--champagne);
+    --color-action:    var(--terracotta);
+    --color-danger:    var(--rouge-doux);
+    --color-success:   var(--vert-doux);
+
+    /* Gris doux assombri pour une meilleure lisibilite (contraste WCAG AA) */
+    --color-text-muted: color-mix(in srgb, var(--gris-doux) 72%, var(--anthracite));
+
+    /* ---- Derives (melanges de la palette, aucune nouvelle teinte) ----- */
+    --color-border:        color-mix(in srgb, var(--anthracite) 11%, transparent);
+    --color-border-strong: color-mix(in srgb, var(--anthracite) 22%, transparent);
+    --color-action-hover:  color-mix(in srgb, var(--terracotta) 85%, black);
+    --color-danger-soft:   color-mix(in srgb, var(--rouge-doux) 12%, var(--ecru));
+    --color-success-soft:  color-mix(in srgb, var(--vert-doux) 12%, var(--ecru));
+    --color-accent-soft:   color-mix(in srgb, var(--champagne) 28%, var(--ecru));
+    --color-nav-line:      color-mix(in srgb, var(--champagne) 22%, transparent);
+
+    /* ---- Typographie --------------------------------------------------- */
+    --font-display: 'Fraunces Variable', Georgia, 'Times New Roman', serif;
+    --font-body:    'Inter Variable', system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+    --text-xs:   0.75rem;
+    --text-sm:   0.875rem;
+    --text-base: 1rem;
+    --text-lg:   1.125rem;
+    --text-xl:   1.375rem;
+    --text-2xl:  1.75rem;
+    --text-3xl:  2.25rem;
+    --text-display: clamp(2.25rem, 1.4rem + 3.2vw, 3.75rem);
+    --text-numeral: clamp(4rem, 2.5rem + 6vw, 7.5rem);
+
+    /* ---- Espacements --------------------------------------------------- */
+    --space-1: 0.25rem;
+    --space-2: 0.5rem;
+    --space-3: 0.75rem;
+    --space-4: 1rem;
+    --space-5: 1.5rem;
+    --space-6: 2rem;
+    --space-7: 3rem;
+    --space-8: 4.5rem;
+
+    /* ---- Formes : angles sobres, plus institutionnels qu'arrondis ------ */
+    --radius-sm: 3px;
+    --radius-md: 6px;
+    --radius-lg: 12px;
+
+    --shadow-sm: 0 1px 2px color-mix(in srgb, var(--aubergine) 8%, transparent);
+    --shadow-md: 0 8px 24px color-mix(in srgb, var(--aubergine) 10%, transparent);
+
+    /* ---- Mise en page -------------------------------------------------- */
+    --sidebar-width: 17rem;
+    --topbar-height: 4.5rem;
+    --content-max:   80rem;
+
+    /* ---- Animation ----------------------------------------------------- */
+    --ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+    --duration: 180ms;
+}
