@@ -47,7 +47,8 @@
 - ✅ Web en build multi-étapes `node:22-alpine` / `php:8.2-cli`, sans migration
 - ✅ Web sans variables `DB_*`; le flux login conserve le JWT en session et le dashboard utilise cette session
 - ✅ Tests web : 14 assertions, aucun échec (avertissements existants lorsque le `.env` local est absent)
-- ⏳ Vérifier l'idempotence de tous les seeders
+- ✅ `auth-service` lit le secret JWT depuis `config()` ; test login/JWT adapté à cette configuration
+- ⏳ Vérifier l'idempotence des seeders patrimoine et mouvements
 - ⏳ Vérifier le démarrage complet et le login sur http://localhost:8080
 
 **Note**: Le build Docker prend beaucoup de temps à cause de l'import du contexte (vendor/ node_modules). Ajout de .dockerignore pour optimiser.

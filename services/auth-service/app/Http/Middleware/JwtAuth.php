@@ -25,7 +25,7 @@ class JwtAuth
         }
 
         try {
-            $decoded = JWT::decode($token, new Key(env('JWT_SECRET'), 'HS256'));
+            $decoded = JWT::decode($token, new Key(config('jwt.secret'), 'HS256'));
             $user = User::find($decoded->sub);
 
             if (!$user) {

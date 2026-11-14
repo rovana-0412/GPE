@@ -16,8 +16,7 @@ class AuthTest extends TestCase
     {
         parent::setUp();
 
-        // Configurer JWT_SECRET pour les tests
-        putenv('JWT_SECRET=test_secret_key_for_jwt');
+        config(['jwt.secret' => 'test_secret_key_for_jwt_at_least_32_chars']);
     }
 
     public function test_login_returns_valid_jwt_token()
