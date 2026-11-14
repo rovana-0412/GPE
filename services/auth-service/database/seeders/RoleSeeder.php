@@ -12,11 +12,11 @@ class RoleSeeder extends Seeder
         $roles = [
             [
                 'nom' => 'Administrateur général',
-                'description' => 'Administre l'ensemble de la plateforme GPE et gère les utilisateurs, les rôles et les paramètres.',
+                'description' => "Administre l'ensemble de la plateforme GPE et gère les utilisateurs, les rôles et les paramètres.",
             ],
             [
                 'nom' => 'Gestionnaire du patrimoine',
-                'description' => 'Supervise l'inventaire, les biens, les affectations, les transferts et les opérations de maintenance.',
+                'description' => "Supervise l'inventaire, les biens, les affectations, les transferts et les opérations de maintenance.",
             ],
             [
                 'nom' => 'Responsable ministériel',
@@ -28,7 +28,7 @@ class RoleSeeder extends Seeder
             ],
             [
                 'nom' => 'Auditeur',
-                'description' => 'Consulte les informations, les rapports et l'historique des opérations à des fins de contrôle.',
+                'description' => "Consulte les informations, les rapports et l'historique des opérations à des fins de contrôle.",
             ],
         ];
 

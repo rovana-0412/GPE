@@ -49,8 +49,8 @@
 - ✅ Web sans variables `DB_*`; le flux login conserve le JWT en session et le dashboard utilise cette session
 - ✅ Tests web : 14 assertions, aucun échec (avertissements existants lorsque le `.env` local est absent)
 - ✅ `auth-service` lit le secret JWT depuis `config()` ; test login/JWT adapté à cette configuration
-- ✅ Seeder patrimoine-service idempotent via `updateOrCreate`
-- ✅ Seeder mouvements-service idempotent via `updateOrCreate`
+- ✅ Seeders des trois services idempotents, relancés deux fois après migration fraîche
+- ✅ Syntaxe d'apostrophes corrigée dans `RoleSeeder`, requise au démarrage auth
 - ⏳ Construire et démarrer l'ensemble Compose, puis vérifier le login HTTP
 - ⏳ Vérifier le démarrage complet et le login sur http://localhost:8080
 
