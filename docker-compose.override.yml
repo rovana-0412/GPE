@@ -1,0 +1,6 @@
+# Surcharge locale : le service PostgreSQL natif de Windows occupe le port 5432.
+# On publie donc le conteneur egalement sur 5433 (voir DB_PORT dans application/.env).
+services:
+  postgres:
+    ports:
+      - "5433:5432"
