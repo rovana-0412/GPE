@@ -1,43 +1,45 @@
 /* ==========================================================================
-   GPE - Tokens de design "Heritage & Modernite"
+   GPE - Tokens de design "Patrimoine National" (Togo)
+   Palette institutionnelle : vert profond dominant, or secondaire,
+   rouge reserve aux alertes et actions sensibles, fonds clairs.
    Source unique de verite : couleurs, typographie, espacements.
    ========================================================================== */
 
 :root {
-    /* ---- Palette de marque (imposee) ---------------------------------- */
-    --aubergine:   #35243F;
-    --prune:       #523B5D;
-    --champagne:   #D6BE91;
-    --terracotta:  #B96852;
-    --perle:       #F1F0EE;
-    --ecru:        #FCFBF8;
-    --anthracite:  #29262C;
-    --gris-doux:   #85818A;
-    --rouge-doux:  #B94D55;
-    --vert-doux:   #477B62;
+    /* ---- Palette nationale (imposee) --------------------------------- */
+    --vert-fonce:  #0E3B2C;   /* vert profond : dominant, sidebar, titres */
+    --vert-moyen:  #1D5C42;   /* vert institutionnel : navigation, actions */
+    --vert-doux:   #3E7C59;   /* vert clair : succes, etats positifs */
+    --or:          #D4A72C;   /* or : secondaire, accents, chiffres */
+    --or-clair:    #EBD9A0;   /* or pale : derives, fonds dorés discrets */
+    --rouge:       #B23A2E;   /* rouge : alertes, suppressions, sensible */
+    --encre:       #26292B;   /* texte principal */
+    --perle:       #F2F0E8;   /* fond clair chaud */
+    --ecru:        #FCFBF7;   /* surfaces, cartes */
+    --gris-doux:   #6E6A72;   /* texte secondaire */
 
     /* ---- Roles semantiques (a utiliser dans les composants) ----------- */
     --color-bg:        var(--perle);
     --color-surface:   var(--ecru);
-    --color-text:      var(--anthracite);
-    --color-primary:   var(--aubergine);
-    --color-nav:       var(--prune);
-    --color-accent:    var(--champagne);
-    --color-action:    var(--terracotta);
-    --color-danger:    var(--rouge-doux);
+    --color-text:      var(--encre);
+    --color-primary:   var(--vert-fonce);
+    --color-nav:       var(--vert-moyen);
+    --color-accent:    var(--or);
+    --color-action:    var(--vert-moyen);
+    --color-danger:    var(--rouge);
     --color-success:   var(--vert-doux);
 
     /* Gris doux assombri pour une meilleure lisibilite (contraste WCAG AA) */
-    --color-text-muted: color-mix(in srgb, var(--gris-doux) 72%, var(--anthracite));
+    --color-text-muted: color-mix(in srgb, var(--gris-doux) 78%, var(--encre));
 
     /* ---- Derives (melanges de la palette, aucune nouvelle teinte) ----- */
-    --color-border:        color-mix(in srgb, var(--anthracite) 11%, transparent);
-    --color-border-strong: color-mix(in srgb, var(--anthracite) 22%, transparent);
-    --color-action-hover:  color-mix(in srgb, var(--terracotta) 85%, black);
-    --color-danger-soft:   color-mix(in srgb, var(--rouge-doux) 12%, var(--ecru));
+    --color-border:        color-mix(in srgb, var(--encre) 12%, transparent);
+    --color-border-strong: color-mix(in srgb, var(--encre) 24%, transparent);
+    --color-action-hover:  color-mix(in srgb, var(--vert-moyen) 82%, black);
+    --color-danger-soft:   color-mix(in srgb, var(--rouge) 10%, var(--ecru));
     --color-success-soft:  color-mix(in srgb, var(--vert-doux) 12%, var(--ecru));
-    --color-accent-soft:   color-mix(in srgb, var(--champagne) 28%, var(--ecru));
-    --color-nav-line:      color-mix(in srgb, var(--champagne) 22%, transparent);
+    --color-accent-soft:   color-mix(in srgb, var(--or) 26%, var(--ecru));
+    --color-nav-line:      color-mix(in srgb, var(--or) 24%, transparent);
 
     /* ---- Typographie --------------------------------------------------- */
     --font-display: 'Fraunces Variable', Georgia, 'Times New Roman', serif;
@@ -68,8 +70,8 @@
     --radius-md: 6px;
     --radius-lg: 12px;
 
-    --shadow-sm: 0 1px 2px color-mix(in srgb, var(--aubergine) 8%, transparent);
-    --shadow-md: 0 8px 24px color-mix(in srgb, var(--aubergine) 10%, transparent);
+    --shadow-sm: 0 1px 2px color-mix(in srgb, var(--vert-fonce) 8%, transparent);
+    --shadow-md: 0 8px 24px color-mix(in srgb, var(--vert-fonce) 12%, transparent);
 
     /* ---- Mise en page -------------------------------------------------- */
     --sidebar-width: 17rem;

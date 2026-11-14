@@ -22,7 +22,7 @@
     background: var(--color-primary);
     color: var(--color-surface);
 }
-.hero-stat .eyebrow { color: color-mix(in srgb, var(--champagne) 85%, transparent); }
+.hero-stat .eyebrow { color: color-mix(in srgb, var(--or) 85%, transparent); }
 .hero-stat__value {
     margin: var(--space-4) 0;
     font-family: var(--font-display);
@@ -64,12 +64,12 @@
 .ledger__row dt { font-size: var(--text-sm); }
 .ledger__row small { display: block; color: var(--color-text-muted); font-size: var(--text-xs); }
 .ledger__row dd { margin: 0; font-family: var(--font-display); font-size: var(--text-2xl); color: var(--color-primary); }
-.ledger__row.is-alert dd { color: var(--color-action); }
+.ledger__row.is-alert dd { color: var(--color-danger); }
 .ledger__sep { margin: var(--space-4) 0 var(--space-1); }
 
 .split { display: flex; height: 0.75rem; border-radius: 99px; overflow: hidden; background: var(--color-border); }
 .split__part--immobilier { background: var(--color-primary); }
-.split__part--mobilier   { background: color-mix(in srgb, var(--prune) 55%, var(--perle)); }
+.split__part--mobilier   { background: color-mix(in srgb, var(--or) 72%, var(--perle)); }
 .split-legend { display: flex; flex-wrap: wrap; gap: var(--space-5); margin: var(--space-3) 0 var(--space-5); font-size: var(--text-sm); }
 .split-legend i { display: inline-block; width: 0.65rem; height: 0.65rem; margin-right: var(--space-2); border-radius: 50%; }
 
@@ -78,7 +78,7 @@
 .bars li { display: grid; grid-template-columns: minmax(7rem, 14rem) 1fr 2rem; gap: var(--space-3); align-items: center; font-size: var(--text-sm); }
 .bar { height: 0.5rem; border-radius: 99px; background: var(--color-border); overflow: hidden; }
 .bar > span { display: block; height: 100%; width: var(--w); background: var(--bar, var(--color-primary)); }
-.bar--mobilier { --bar: color-mix(in srgb, var(--prune) 55%, var(--perle)); }
+.bar--mobilier { --bar: color-mix(in srgb, var(--or) 72%, var(--perle)); }
 .bars b { text-align: right; font-weight: 600; }
 
 .timeline { position: relative; list-style: none; padding: 0; margin: 0; }
