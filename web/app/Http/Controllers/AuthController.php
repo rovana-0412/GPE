@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Http;
 
 class AuthController extends Controller
 {
@@ -16,7 +16,7 @@ class AuthController extends Controller
     }
 
     /**
-     * Vérifier les identifiants de connexion.
+     * Vérifier les identifiants de connexion via auth-service.
      */
     public function login(Request $request)
     {
@@ -25,10 +25,24 @@ class AuthController extends Controller
             'password' => ['required', 'string'],
         ]);
 
-        if (Auth::attempt($credentials)) {
+        // Appeler l'API auth-service
+        $response = Http::post(env('AUTH_URL') . '/api/login', [
+            'email' => $credentials['email'],
+            'password' => $credentials['password'],
+        ]);
+
+        if ($response->successful() && $response->json('success')) {
+            $data = $response->json('data');
+
+            // Stocker le JWT et les infos utilisateur en session
+            session([
+                'jwt_token' => $data['token'],
+                'user' => $data['user'],
+            ]);
+
             $request->session()->regenerate();
 
-           return redirect()->intended(route('dashboard'));
+            return redirect()->intended(route('dashboard'));
         }
 
         return back()->withErrors([
@@ -41,7 +55,8 @@ class AuthController extends Controller
      */
     public function logout(Request $request)
     {
-        Auth::logout();
+        // Supprimer le JWT et les infos utilisateur de la session
+        session()->forget(['jwt_token', 'user']);
 
         $request->session()->invalidate();
         $request->session()->regenerateToken();

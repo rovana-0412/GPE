@@ -3,11 +3,10 @@
 use App\Http\Controllers\DashboardController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
-use Illuminate\Support\Facades\Auth;
 
 // Page d'accueil
 Route::get('/', function () {
-    return redirect()->route(Auth::check() ? 'dashboard' : 'login');
+    return redirect()->route(session('jwt_token') ? 'dashboard' : 'login');
 })->name('accueil');
 
 // Authentification
@@ -21,10 +20,10 @@ Route::middleware('guest')->group(function () {
 
 // Déconnexion
 Route::post('/deconnexion', [AuthController::class, 'logout'])
-    ->middleware('auth')
+    ->middleware('jwt.auth')
     ->name('logout');
 
     // Tableau de bord : accès réservé aux utilisateurs connectés
 Route::get('/tableau-de-bord', [DashboardController::class, 'index'])
-    ->middleware('auth')
+    ->middleware('jwt.auth')
     ->name('dashboard');

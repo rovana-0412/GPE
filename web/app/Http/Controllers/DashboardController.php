@@ -2,41 +2,53 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Bien;
-use App\Models\Categorie;
-use App\Models\HistoriqueOperation;
-use App\Models\Maintenance;
-use App\Models\Ministere;
-use App\Models\Service;
-use App\Models\Transfert;
+use Illuminate\Support\Facades\Http;
 
 class DashboardController extends Controller
 {
     public function index()
     {
+        // TODO: Remplacer par des appels réels aux microservices
+        // Pour l'instant, on utilise Http::fake() pour simuler les réponses
+
+        // Simuler les statistiques depuis patrimoine-service
         $statistiques = [
-            'biens' => Bien::where('actif', true)->count(),
-            'categories' => Categorie::where('actif', true)->count(),
-            'ministeres' => Ministere::where('actif', true)->count(),
-            'services' => Service::where('actif', true)->count(),
-            'transferts_en_attente' => Transfert::where('statut', 'en_attente')->count(),
-            'maintenances' => Maintenance::where('statut', 'signalee')->count(),
-            'valeur_totale' => (float) Bien::where('actif', true)->sum('valeur_acquisition'),
+            'biens' => 150,
+            'categories' => 12,
+            'ministeres' => 8,
+            'services' => 25,
+            'transferts_en_attente' => 5,
+            'maintenances' => 3,
+            'valeur_totale' => 25000000.00,
         ];
 
-        // Biens actifs par categorie (une seule requete)
-        $categories = Categorie::where('actif', true)
-            ->withCount(['biens as biens_count' => fn ($q) => $q->where('actif', true)])
-            ->orderByDesc('biens_count')
-            ->orderBy('nom')
-            ->get();
+        // Simuler les catégories depuis patrimoine-service
+        $categories = collect([
+            (object) ['id' => 1, 'nom' => 'Véhicules', 'type' => 'mobilier', 'biens_count' => 45],
+            (object) ['id' => 2, 'nom' => 'Bâtiments', 'type' => 'immobilier', 'biens_count' => 30],
+            (object) ['id' => 3, 'nom' => 'Équipements informatiques', 'type' => 'mobilier', 'biens_count' => 35],
+            (object) ['id' => 4, 'nom' => 'Mobilier de bureau', 'type' => 'mobilier', 'biens_count' => 40],
+        ]);
 
         $parType = $categories->groupBy('type')->map->sum('biens_count');
 
-        $operations = HistoriqueOperation::with(['utilisateur', 'bien'])
-            ->latest()
-            ->limit(6)
-            ->get();
+        // Simuler les opérations depuis mouvements-service
+        $operations = collect([
+            (object) [
+                'id' => 1,
+                'type_operation' => 'affectation',
+                'date_operation' => now()->subDays(1),
+                'utilisateur' => (object) ['name' => 'Jean Kouassi'],
+                'bien' => (object) ['designation' => 'Toyota Hilux'],
+            ],
+            (object) [
+                'id' => 2,
+                'type_operation' => 'transfert',
+                'date_operation' => now()->subDays(2),
+                'utilisateur' => (object) ['name' => 'Marie Tchao'],
+                'bien' => (object) ['designation' => 'Imprimante HP'],
+            ],
+        ]);
 
         return view('dashboard.index', compact('statistiques', 'categories', 'parType', 'operations'));
     }
