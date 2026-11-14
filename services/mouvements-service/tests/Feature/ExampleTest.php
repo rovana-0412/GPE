@@ -10,10 +10,13 @@ class ExampleTest extends TestCase
     /**
      * A basic test example.
      */
-    public function test_the_application_returns_a_successful_response(): void
+    public function test_root_returns_service_status(): void
     {
-        $response = $this->get('/');
-
-        $response->assertStatus(200);
+        $this->getJson('/')
+            ->assertOk()
+            ->assertExactJson([
+                'service' => 'mouvements-service',
+                'status' => 'ok',
+            ]);
     }
 }

@@ -19,6 +19,16 @@ class AuthTest extends TestCase
         config(['jwt.secret' => 'test_secret_key_for_jwt_at_least_32_chars']);
     }
 
+    public function test_root_returns_service_status(): void
+    {
+        $this->getJson('/')
+            ->assertOk()
+            ->assertExactJson([
+                'service' => 'auth-service',
+                'status' => 'ok',
+            ]);
+    }
+
     public function test_login_returns_valid_jwt_token()
     {
         // Créer un rôle et un utilisateur de test
