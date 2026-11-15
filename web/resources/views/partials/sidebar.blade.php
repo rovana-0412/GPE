@@ -18,8 +18,8 @@
 
         <div class="nav-group">
             <p class="nav-group__title">Patrimoine</p>
-            <x-nav-item icon="building">Tous les biens</x-nav-item>
-            <x-nav-item icon="tag">Catégories</x-nav-item>
+            <x-nav-item icon="building" :href="route('biens.index')" :active="request()->routeIs('biens.*')">Tous les biens</x-nav-item>
+            <x-nav-item icon="tag" :href="route('categories.index')" :active="request()->routeIs('categories.*')">Catégories</x-nav-item>
             <x-nav-item icon="link">Affectations</x-nav-item>
         </div>
 
@@ -36,8 +36,8 @@
 
         <div class="nav-group">
             <p class="nav-group__title">Administration</p>
-            <x-nav-item icon="landmark">Ministères</x-nav-item>
-            <x-nav-item icon="sitemap">Services</x-nav-item>
+            <x-nav-item icon="landmark" :href="route('ministeres.index')" :active="request()->routeIs('ministeres.*')">Ministères</x-nav-item>
+            <x-nav-item icon="sitemap" :href="route('services.index')" :active="request()->routeIs('services.*')">Services</x-nav-item>
             <x-nav-item icon="user">Utilisateurs et rôles</x-nav-item>
         </div>
 

@@ -109,11 +109,7 @@
     width: 9rem;
     height: 9rem;
     border-radius: 50%;
-    background: conic-gradient(
-        var(--color-primary) 0% 16%,
-        var(--or) 16% 39%,
-        var(--vert-moyen) 39% 100%
-    );
+    background: conic-gradient(var(--color-primary) 0% var(--immobilier-part, 0%), var(--or) var(--immobilier-part, 0%) 100%);
     position: relative;
 }
 .donut-card__chart::after {

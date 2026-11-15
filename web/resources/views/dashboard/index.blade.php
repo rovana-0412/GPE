@@ -9,6 +9,7 @@
     $immobilier = $parType['immobilier'] ?? 0;
     $mobilier = $parType['mobilier'] ?? 0;
     $maxCategorie = max($categories->max('biens_count') ?? 0, 1);
+    $maxMinistere = max($ministeres->max('biens_count') ?? 0, 1);
 
     $types = [
         'bien.cree'            => ['Bien enregistré', 'accent'],
@@ -33,32 +34,27 @@
 
     <div class="dash">
 
-        <!-- Carte hero vert foncé : valeur cumulee + evolution -->
         <section class="hero-card">
             <div>
                 <p class="eyebrow">Valeur du patrimoine</p>
-                <p class="hero-card__message">La valeur cumulée des biens actifs augmente de 15% ce mois.</p>
+                <p class="hero-card__message">Somme des valeurs d’acquisition des biens recensés.</p>
             </div>
-            <p class="hero-card__value num">{{ number_format($statistiques['valeur_totale'], 0, ',', ' ') }}</p>
+            <p class="hero-card__value num">{{ number_format($statistiques['valeur_totale'], 0, ',', ' ') }} FCFA</p>
             <div class="hero-card__meta">
                 <p>{{ now()->locale('fr')->translatedFormat('j F Y') }}</p>
-                <a href="#" class="hero-card__link">Voir les statistiques <x-icon name="arrow-right"/></a>
+                <a href="{{ route('biens.index') }}" class="hero-card__link">Consulter les biens <x-icon name="arrow-right"/></a>
             </div>
         </section>
 
-        <!-- Carte metrique : biens actifs -->
         <section class="metric-card">
-            <p class="eyebrow">Biens actifs</p>
+            <p class="eyebrow">Biens recensés</p>
             <p class="metric-card__value num">{{ $statistiques['biens'] }}</p>
-            <span class="metric-card__delta metric-card__delta--up">
-                <x-icon name="trending-up"/> +12% vs mois dernier
-            </span>
+            <span class="metric-card__delta">{{ $statistiques['categories'] }} catégories</span>
         </section>
 
-        <!-- Carte donut : répartition immobilier/mobilier -->
         <section class="donut-card">
             <div class="donut-card__center">
-                <div class="donut-card__chart"></div>
+                <div class="donut-card__chart" style="--immobilier-part: {{ round($immobilier / $totalBiens * 100, 2) }}%"></div>
                 <div class="donut-card__total">
                     <p class="num">{{ $statistiques['biens'] }}</p>
                     <small>Total biens</small>
@@ -71,7 +67,6 @@
             <p class="donut-card__tips">Répartition du patrimoine par type.</p>
         </section>
 
-        <!-- Carte liste : opérations récentes -->
         <section class="list-card">
             <div class="list-card__head">
                 <p class="eyebrow">Traçabilité</p>
@@ -106,21 +101,21 @@
             @endif
         </section>
 
-        <!-- Carte bar chart vertical : biens par ministère -->
         <section class="bar-card">
             <p class="eyebrow">Répartition par ministère</p>
             <h3>{{ $statistiques['ministeres'] }} ministères</h3>
             <div class="bar-card__chart">
-                @for ($i = 0; $i < 6; $i++)
+                @forelse ($ministeres as $ministere)
                     <div class="bar-card__bar">
-                        <div class="bar" style="--h: {{ rand(30, 100) }}%"></div>
-                        <span>M{{ $i + 1 }}</span>
+                        <div class="bar" style="--h: {{ $ministere->biens_count / $maxMinistere * 100 }}%"></div>
+                        <span title="{{ $ministere->nom }}">{{ \Illuminate\Support\Str::limit($ministere->nom, 12) }}</span>
                     </div>
-                @endfor
+                @empty
+                    <p>Aucun ministère enregistré.</p>
+                @endforelse
             </div>
         </section>
 
-        <!-- Carte panel standard : repères + alertes -->
         <section class="panel">
             <div class="panel__head">
                 <p class="eyebrow">Structure</p>
@@ -146,7 +141,6 @@
             </dl>
         </section>
 
-        <!-- Carte bar chart horizontal : biens par catégorie -->
         <section class="hbar-card">
             <p class="eyebrow">Synthèse</p>
             <h3>Biens par catégorie</h3>
@@ -168,7 +162,6 @@
             </div>
         </section>
 
-        <!-- Carte promotionnelle (remplacee "Update to Siohioma+") -->
         <section class="promo-card">
             <p class="eyebrow">Amélioration</p>
             <h3>Optimisez la gestion du patrimoine</h3>

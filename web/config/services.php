@@ -6,6 +6,10 @@ return [
         'url' => env('AUTH_URL', 'http://auth-service:8000'),
     ],
 
+    'patrimoine' => [
+        'url' => env('PATRIMOINE_URL', 'http://patrimoine-service:8000'),
+    ],
+
     /*
     |--------------------------------------------------------------------------
     | Third Party Services

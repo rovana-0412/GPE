@@ -27,10 +27,10 @@
         <button class="topbar__icon-btn" aria-label="Messages">
             <x-icon name="chat"/>
         </button>
-        <button class="btn btn--primary">
+        <a class="btn btn--primary" href="{{ route('biens.create') }}">
             <x-icon name="plus"/>
             Ajouter un bien
-        </button>
+        </a>
     </div>
 
     <div class="topbar__user">

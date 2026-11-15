@@ -172,6 +172,36 @@ textarea.input:focus {
 }
 .btn--ghost:hover { background: var(--color-bg); }
 
+.form-actions {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+}
+.form-actions form { display: inline-flex; }
+.pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: var(--space-4);
+    margin-top: var(--space-4);
+    font-size: var(--text-sm);
+}
+.pagination a { color: var(--color-action); font-weight: 600; }
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
 /* ---- Badges de statut ------------------------------------------------- */
 
 .badge {
