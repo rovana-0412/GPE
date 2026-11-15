@@ -1,13 +1,13 @@
-# Microservices GPE — Avancement du jalon (a)
+# Microservices GPE — Avancement des phases
 
 > Branche : `feature/microservices`
-> Objectif : Docker + Nginx + auth-service + web (login fonctionnel sur http://localhost:8080)
-> Dernière validation : 14/11/2026
+> Objectif : plateforme GPE microservices exploitable sur http://localhost:8080
+> Dernière validation : 15/11/2026
 
 ## État actuel
 
 ### Structure
-|- `web/` : application Laravel monolithe déplacée (design togolais + dashboard commercial)
+|- `web/` : interface Laravel Blade sans base de données (design togolais + tableau de bord)
 |- `services/auth-service/` : Laravel 12 API-only installé
 |- `services/patrimoine-service/` : Laravel 12 API-only installé
 |- `services/mouvements-service/` : Laravel 12 API-only installé
@@ -71,11 +71,26 @@
 - ✅ Après vérification, `docker compose down` a arrêté les six conteneurs sans supprimer le volume PostgreSQL
 - ✅ Tests après nettoyage : web 14 assertions, auth-service 22, patrimoine-service 3, mouvements-service 3 ; aucun échec (avertissements dus aux `.env` locaux absents)
 
-## Après le jalon (a)
-- Jalon (b) : patrimoine-service + dashboard réel
-- Jalon (c) : mouvements-service
+### ✅ Phase 1 — Patrimoine-service et pages biens
+- ✅ Modèles et migrations PostgreSQL de ministeres, services, categories et biens; les biens utilisent `SoftDeletes`
+- ✅ Clés étrangères limitées aux relations internes au service patrimoine
+- ✅ Seeders idempotents : 4 ministères, 9 services, 10 catégories et 6 biens
+- ✅ API REST CRUD protégée par `jwt.auth`, validation FormRequest, pagination, filtres et statistiques
+- ✅ Vérification JWT HS256 par configuration, sans requête vers la base des utilisateurs de auth-service
+- ✅ Interface web reliée avec le JWT de session : dashboard réel, liste/fiche/création/modification des biens et gestion des référentiels
+- ✅ Une réponse 401 d’un service invalide la session; une indisponibilité affiche une erreur claire en français
+- ✅ Tests patrimoine : 34 assertions sans échec, couvrant accès sans token, filtres, pagination, CRUD, suppression logique, contraintes et idempotence
+- ✅ Tests web : 32 assertions sans échec, incluant pages, dashboard, déconnexion sur 401 et indisponibilité inter-services
+- ✅ `npm.cmd run build` réussi; contrôle PHP : 150 sources sans BOM, avec `<?php` initial et sans balise finale
+- ✅ `docker compose up -d --build` : six conteneurs healthy; rebuild suivi de `docker compose restart gateway`
+- ✅ Curl de bout en bout : cookies `XSRF-TOKEN` et `laravel_session`, login web 302, dashboard alimenté par l’API
+- ✅ Curl JWT : 6 biens et valeur d’acquisition totale de 137 150 000 FCFA via `/api/patrimoine`
+- ✅ `docker compose down` exécuté après validation; volume PostgreSQL conservé
+- ✅ Commits : `405c13f` (Patrimoine) et `16c7e3e` (Web)
+- ℹ️ Les tests locaux sortent avec code 0 mais signalent un avertissement par test car les fichiers `.env` applicatifs locaux sont absents; les clés de test ont été fournies uniquement au processus.
 
-La phase 1 du plan attend la confirmation « continue » avant de commencer.
+## Prochaine phase
+- Phase 2 : mouvements-service et pages affectations, transferts, maintenances et historique
 
 ## Contraintes
 - Ne commite aucun `.env`
