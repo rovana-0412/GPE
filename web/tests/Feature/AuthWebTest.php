@@ -14,6 +14,7 @@ class AuthWebTest extends TestCase
         // Configurer les URLs pour les tests
         config(['services.auth.url' => 'http://auth-service:8000']);
         config(['services.patrimoine.url' => 'http://patrimoine-service:8000']);
+        config(['services.mouvements.url' => 'http://mouvements-service:8000']);
     }
 
     public function test_login_stores_jwt_in_session()
@@ -97,6 +98,11 @@ class AuthWebTest extends TestCase
                     'biens_par_ministere' => [],
                 ],
             ], 200),
+            'http://mouvements-service:8000/api/stats' => Http::response(['data' => [
+                'transferts_en_attente' => 0,
+                'maintenances_en_cours' => 0,
+                'operations_recentes' => [],
+            ]], 200),
         ]);
 
         // Se connecter
@@ -165,6 +171,7 @@ class AuthWebTest extends TestCase
             'http://patrimoine-service:8000/api/services*' => Http::response([
                 'data' => [['id' => 1, 'nom' => 'Direction du Budget', 'ministere' => ['nom' => 'MEF']]],
             ]),
+            'http://mouvements-service:8000/api/stats' => Http::response(['data' => ['transferts_en_attente' => 0]], 200),
         ]);
         $session = [
             'jwt_token' => 'token-de-test',
@@ -191,6 +198,7 @@ class AuthWebTest extends TestCase
                 'current_page' => 1,
                 'last_page' => 1,
             ]),
+            'http://mouvements-service:8000/api/stats' => Http::response(['data' => ['transferts_en_attente' => 0]], 200),
         ]);
 
         $this->withSession([
@@ -200,6 +208,75 @@ class AuthWebTest extends TestCase
             ->assertOk()
             ->assertSee('Catégories enregistrés')
             ->assertSee('Matériel informatique');
+    }
+
+    public function test_movement_pages_render_data_from_the_movements_service(): void
+    {
+        Http::fake([
+            'http://mouvements-service:8000/api/stats' => Http::response(['data' => [
+                'transferts_en_attente' => 1,
+                'maintenances_en_cours' => 0,
+                'operations_recentes' => [],
+            ]], 200),
+            'http://mouvements-service:8000/api/affectations*' => Http::response(['data' => []], 200),
+            'http://mouvements-service:8000/api/transferts*' => Http::response(['data' => [[
+                'id' => 1,
+                'bien_id' => 10,
+                'service_origine_id' => 2,
+                'service_destination_id' => 3,
+                'date_demande' => '2026-01-15',
+                'motif' => 'Réorganisation',
+                'statut' => 'en_attente',
+            ]]], 200),
+            'http://mouvements-service:8000/api/maintenances*' => Http::response(['data' => [[
+                'id' => 1,
+                'bien_id' => 10,
+                'type' => 'preventive',
+                'description' => 'Révision annuelle',
+                'date_debut' => '2026-01-15',
+                'cout' => '25000.00',
+                'statut' => 'signalee',
+            ]]], 200),
+            'http://mouvements-service:8000/api/historique*' => Http::response(['data' => [[
+                'id' => 1,
+                'utilisateur_id' => 42,
+                'bien_id' => 10,
+                'action' => 'maintenance.creee',
+                'ancienne_valeur' => null,
+                'nouvelle_valeur' => ['statut' => 'signalee'],
+                'created_at' => '2026-01-15T10:00:00.000000Z',
+            ]]], 200),
+            'http://patrimoine-service:8000/api/biens*' => Http::response(['data' => [[
+                'id' => 10,
+                'reference' => 'GPE-TEST-010',
+                'designation' => 'Ordinateur de test',
+            ]]], 200),
+            'http://patrimoine-service:8000/api/services*' => Http::response(['data' => [
+                ['id' => 2, 'nom' => 'Direction d’origine'],
+                ['id' => 3, 'nom' => 'Direction destinataire'],
+            ]], 200),
+        ]);
+        $session = [
+            'jwt_token' => 'token-de-test',
+            'user' => ['id' => 42, 'name' => 'Utilisateur test'],
+        ];
+
+        $this->withSession($session)->get('/affectations')
+            ->assertOk()
+            ->assertSee('Nouvelle affectation');
+        $this->withSession($session)->get('/transferts')
+            ->assertOk()
+            ->assertSee('Réorganisation')
+            ->assertSee('Approuver');
+        $this->withSession($session)->get('/maintenances')
+            ->assertOk()
+            ->assertSee('Révision annuelle')
+            ->assertSee('25 000');
+        $this->withSession($session)->get('/historique')
+            ->assertOk()
+            ->assertSee('maintenance · creee');
+
+        Http::assertSent(fn ($request) => $request->url() === 'http://mouvements-service:8000/api/stats');
     }
 
     public function test_dashboard_redirects_to_login_without_jwt()

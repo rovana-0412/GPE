@@ -10,6 +10,10 @@ return [
         'url' => env('PATRIMOINE_URL', 'http://patrimoine-service:8000'),
     ],
 
+    'mouvements' => [
+        'url' => env('MOUVEMENTS_URL', 'http://mouvements-service:8000'),
+    ],
+
     /*
     |--------------------------------------------------------------------------
     | Third Party Services

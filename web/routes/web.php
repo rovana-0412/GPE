@@ -3,6 +3,7 @@
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BienController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\MouvementController;
 use App\Http\Controllers\ReferenceController;
 use Illuminate\Support\Facades\Route;
 
@@ -53,4 +54,21 @@ Route::middleware('jwt.auth')->group(function (): void {
         Route::delete('/'.$resource.'/{id}', [ReferenceController::class, 'destroy'])
             ->whereNumber('id')->defaults('resource', $resource)->name($resource.'.destroy');
     }
+
+    Route::get('/affectations', [MouvementController::class, 'affectations'])->name('affectations.index');
+    Route::post('/affectations', [MouvementController::class, 'creerAffectation'])->name('affectations.store');
+    Route::patch('/affectations/{id}', [MouvementController::class, 'modifierAffectation'])
+        ->whereNumber('id')->name('affectations.update');
+
+    Route::get('/transferts', [MouvementController::class, 'transferts'])->name('transferts.index');
+    Route::post('/transferts', [MouvementController::class, 'creerTransfert'])->name('transferts.store');
+    Route::patch('/transferts/{id}/statut', [MouvementController::class, 'changerStatutTransfert'])
+        ->whereNumber('id')->name('transferts.statut');
+
+    Route::get('/maintenances', [MouvementController::class, 'maintenances'])->name('maintenances.index');
+    Route::post('/maintenances', [MouvementController::class, 'creerMaintenance'])->name('maintenances.store');
+    Route::patch('/maintenances/{id}', [MouvementController::class, 'modifierMaintenance'])
+        ->whereNumber('id')->name('maintenances.update');
+
+    Route::get('/historique', [MouvementController::class, 'historique'])->name('historique.index');
 });

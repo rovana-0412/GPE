@@ -36,6 +36,8 @@ return Application::configure(basePath: dirname(__DIR__))
         });
 
         $exceptions->render(function (ServiceUnavailableException $exception, Request $request) {
+            $request->attributes->set('service_unavailable', true);
+
             if ($request->expectsJson()) {
                 return response()->json([
                     'message' => 'Le service demandé est momentanément indisponible. Réessayez plus tard.',

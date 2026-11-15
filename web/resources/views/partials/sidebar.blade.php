@@ -20,18 +20,18 @@
             <p class="nav-group__title">Patrimoine</p>
             <x-nav-item icon="building" :href="route('biens.index')" :active="request()->routeIs('biens.*')">Tous les biens</x-nav-item>
             <x-nav-item icon="tag" :href="route('categories.index')" :active="request()->routeIs('categories.*')">Catégories</x-nav-item>
-            <x-nav-item icon="link">Affectations</x-nav-item>
+            <x-nav-item icon="link" :href="route('affectations.index')" :active="request()->routeIs('affectations.*')">Affectations</x-nav-item>
         </div>
 
         <div class="nav-group">
             <p class="nav-group__title">Mouvements</p>
-            <x-nav-item icon="swap">
+            <x-nav-item icon="swap" :href="route('transferts.index')" :active="request()->routeIs('transferts.*')">
                 Transferts
                 @if ($transferts_en_attente ?? 0 > 0)
                     <span class="nav-item__badge">{{ $transferts_en_attente }}</span>
                 @endif
             </x-nav-item>
-            <x-nav-item icon="wrench">Maintenances</x-nav-item>
+            <x-nav-item icon="wrench" :href="route('maintenances.index')" :active="request()->routeIs('maintenances.*')">Maintenances</x-nav-item>
         </div>
 
         <div class="nav-group">
@@ -43,7 +43,7 @@
 
         <div class="nav-group">
             <p class="nav-group__title">Traçabilité</p>
-            <x-nav-item icon="clock">Historique</x-nav-item>
+            <x-nav-item icon="clock" :href="route('historique.index')" :active="request()->routeIs('historique.*')">Historique</x-nav-item>
             <x-nav-item icon="file-text">Rapports</x-nav-item>
         </div>
 

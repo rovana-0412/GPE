@@ -15,8 +15,13 @@
         'bien.cree'            => ['Bien enregistré', 'accent'],
         'bien.modifie'         => ['Informations modifiées', 'neutral'],
         'affectation.creee'    => ['Affectation', 'success'],
+        'affectation.modifiee' => ['Affectation mise à jour', 'neutral'],
+        'transfert.cree'       => ['Transfert créé', 'action'],
         'transfert.demande'    => ['Transfert demandé', 'action'],
         'transfert.valide'     => ['Transfert validé', 'success'],
+        'transfert.statut_modifie' => ['Transfert mis à jour', 'success'],
+        'maintenance.creee'    => ['Maintenance signalée', 'danger'],
+        'maintenance.modifiee' => ['Maintenance mise à jour', 'neutral'],
         'maintenance.signalee' => ['Maintenance signalée', 'danger'],
     ];
 @endphp

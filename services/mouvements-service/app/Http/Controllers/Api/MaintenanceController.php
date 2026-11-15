@@ -1,0 +1,117 @@
+<?php
+
+namespace App\Http\Controllers\Api;
+
+use App\Http\Controllers\Controller;
+use App\Models\Maintenance;
+use App\Services\HistoriqueWriter;
+use App\Services\PatrimoineClient;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
+use Symfony\Component\HttpFoundation\Response;
+
+class MaintenanceController extends Controller
+{
+    public function index(Request $request): JsonResponse
+    {
+        $filters = $request->validate([
+            'bien_id' => ['nullable', 'integer', 'min:1'],
+            'statut' => ['nullable', 'in:signalee,planifiee,en_cours,terminee,annulee'],
+            'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
+        ]);
+
+        $maintenances = Maintenance::query()
+            ->when(isset($filters['bien_id']), fn ($query) => $query->where('bien_id', $filters['bien_id']))
+            ->when(isset($filters['statut']), fn ($query) => $query->where('statut', $filters['statut']))
+            ->latest('id')
+            ->paginate($filters['per_page'] ?? 15)
+            ->withQueryString();
+
+        return response()->json($maintenances);
+    }
+
+    public function store(Request $request, PatrimoineClient $patrimoine, HistoriqueWriter $historique): JsonResponse
+    {
+        $data = $request->validate([
+            'bien_id' => ['required', 'integer', 'min:1'],
+            'type' => ['required', 'string', 'max:50'],
+            'description' => ['required', 'string', 'max:5000'],
+            'date_debut' => ['required', 'date'],
+            'date_fin' => ['nullable', 'date', 'after_or_equal:date_debut'],
+            'cout' => ['nullable', 'numeric', 'min:0'],
+            'prestataire' => ['nullable', 'string', 'max:255'],
+            'statut' => ['sometimes', 'in:signalee,planifiee,en_cours,terminee,annulee'],
+            'observation' => ['nullable', 'string', 'max:5000'],
+        ]);
+
+        $token = (string) $request->bearerToken();
+
+        if ($patrimoine->bien($data['bien_id'], $token) === null) {
+            throw ValidationException::withMessages(['bien_id' => 'Le bien demandé n’existe pas.']);
+        }
+
+        $payload = $request->attributes->get('jwt_payload', []);
+        $maintenance = DB::transaction(function () use ($data, $payload, $historique): Maintenance {
+            $maintenance = Maintenance::create([
+                ...$data,
+                'utilisateur_id' => (int) $payload['sub'],
+                'statut' => $data['statut'] ?? 'signalee',
+            ]);
+            $historique->enregistrer('maintenance.creee', $maintenance->bien_id, null, $maintenance->toArray());
+
+            return $maintenance;
+        });
+
+        return response()->json(['data' => $maintenance], Response::HTTP_CREATED);
+    }
+
+    public function show(Maintenance $maintenance): JsonResponse
+    {
+        return response()->json(['data' => $maintenance]);
+    }
+
+    public function update(
+        Request $request,
+        Maintenance $maintenance,
+        PatrimoineClient $patrimoine,
+        HistoriqueWriter $historique,
+    ): JsonResponse {
+        $data = $request->validate([
+            'bien_id' => ['sometimes', 'integer', 'min:1'],
+            'type' => ['sometimes', 'string', 'max:50'],
+            'description' => ['sometimes', 'string', 'max:5000'],
+            'date_debut' => ['sometimes', 'date'],
+            'date_fin' => ['sometimes', 'nullable', 'date'],
+            'cout' => ['sometimes', 'nullable', 'numeric', 'min:0'],
+            'prestataire' => ['sometimes', 'nullable', 'string', 'max:255'],
+            'statut' => ['sometimes', 'in:signalee,planifiee,en_cours,terminee,annulee'],
+            'observation' => ['sometimes', 'nullable', 'string', 'max:5000'],
+        ]);
+
+        if ($data === []) {
+            throw ValidationException::withMessages(['maintenance' => 'Aucune modification n’a été fournie.']);
+        }
+
+        $bienId = (int) ($data['bien_id'] ?? $maintenance->bien_id);
+
+        if ($patrimoine->bien($bienId, (string) $request->bearerToken()) === null) {
+            throw ValidationException::withMessages(['bien_id' => 'Le bien demandé n’existe pas.']);
+        }
+
+        DB::transaction(function () use ($maintenance, $data, $historique): void {
+            $ancienneValeur = $maintenance->toArray();
+            $maintenance->update($data);
+            $historique->enregistrer(
+                'maintenance.modifiee',
+                $maintenance->bien_id,
+                $ancienneValeur,
+                $maintenance->fresh()->toArray(),
+            );
+        });
+        $maintenance->refresh();
+
+        return response()->json(['data' => $maintenance]);
+    }
+}
