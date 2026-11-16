@@ -214,12 +214,13 @@ class PatrimoineApiTest extends TestCase
             ->assertOk()
             ->assertJsonPath('data.statut', 'en_attente');
 
-        $this->withToken($token)
+        $validator = $this->tokenForUser(77);
+        $this->withToken($validator)
             ->patchJson('/api/acquisitions/'.$acquisitionId.'/statut', ['statut' => 'receptionnee'])
             ->assertOk()
             ->assertJsonPath('data.statut', 'receptionnee');
 
-        $this->withToken($token)
+        $this->withToken($validator)
             ->patchJson('/api/acquisitions/'.$acquisitionId.'/statut', ['statut' => 'validee'])
             ->assertOk()
             ->assertJsonPath('data.statut', 'validee')
@@ -334,13 +335,14 @@ class PatrimoineApiTest extends TestCase
             ])
             ->assertConflict();
 
+        $validator = $this->tokenForUser(77);
         $this->withToken($token)
             ->patchJson('/api/sorties/'.$sortieId.'/statut', ['statut' => 'executee'])
             ->assertUnprocessable();
-        $this->withToken($token)
+        $this->withToken($validator)
             ->patchJson('/api/sorties/'.$sortieId.'/statut', ['statut' => 'approuvee'])
             ->assertOk();
-        $this->withToken($token)
+        $this->withToken($validator)
             ->patchJson('/api/sorties/'.$sortieId.'/statut', ['statut' => 'executee'])
             ->assertOk()
             ->assertJsonPath('data.statut', 'executee')

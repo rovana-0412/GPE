@@ -131,7 +131,7 @@ class PatrimoineClient
 
     public function changerService(int $bienId, int $serviceId, string $token): void
     {
-        $response = $this->send('PATCH', '/api/biens/'.$bienId, $token, [
+        $response = $this->send('PUT', '/api/biens/'.$bienId, $token, [
             'service_id' => $serviceId,
         ]);
 

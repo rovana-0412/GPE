@@ -25,6 +25,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install gd zip \
     && apt-get purge -y --auto-remove libfreetype6-dev libjpeg62-turbo-dev libpng-dev libzip-dev \
+    && apt-get install -y --no-install-recommends libzip5 \
     && printf 'upload_max_filesize=12M\npost_max_size=13M\n' > /usr/local/etc/php/conf.d/uploads.ini \
     && rm -rf /var/lib/apt/lists/*
 
