@@ -124,7 +124,7 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\test.ps1
 ## Comptes de démonstration
 
 - **Email** : `admin@gpe.local`
-- **Mot de passe** : `GPE_Admin_2026!`
+- **Mot de passe** : défini par `ADMIN_INITIAL_PASSWORD` dans `.env` lors de la première installation
 - **Rôle** : Administrateur général
 
 ## Documentation
