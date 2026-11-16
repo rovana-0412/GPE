@@ -26,7 +26,7 @@
              DB_USERNAME et DB_PASSWORD sont hérités du .env (non versionné). -->
         <env name="DB_CONNECTION" value="pgsql"/>
         <env name="DB_HOST" value="127.0.0.1"/>
-        <env name="DB_PORT" value="5433"/>
+        <env name="DB_PORT" value="5434"/>
         <env name="DB_DATABASE" value="gpe_test"/>
         <env name="APP_KEY" value="base64:QOhCnzM4AmS3yVuPdwpwzH6pXa5T1MsXSgBNqN+KB5w="/>
         <env name="MAIL_MAILER" value="array"/>
