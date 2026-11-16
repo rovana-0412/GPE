@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Transfert;
 use App\Services\HistoriqueWriter;
+use App\Services\NotificationWriter;
 use App\Services\PatrimoineClient;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -18,6 +19,8 @@ class TransfertController extends Controller
     {
         $filters = $request->validate([
             'bien_id' => ['nullable', 'integer', 'min:1'],
+            'bien_ids' => ['nullable', 'array', 'max:100'],
+            'bien_ids.*' => ['integer', 'min:1'],
             'service_origine_id' => ['nullable', 'integer', 'min:1'],
             'service_destination_id' => ['nullable', 'integer', 'min:1'],
             'statut' => ['nullable', 'in:brouillon,en_attente,approuvé,effectué,rejeté'],
@@ -26,6 +29,7 @@ class TransfertController extends Controller
 
         $transferts = Transfert::query()
             ->when(isset($filters['bien_id']), fn ($query) => $query->where('bien_id', $filters['bien_id']))
+            ->when(isset($filters['bien_ids']), fn ($query) => $query->whereIn('bien_id', $filters['bien_ids']))
             ->when(isset($filters['service_origine_id']), fn ($query) => $query->where('service_origine_id', $filters['service_origine_id']))
             ->when(isset($filters['service_destination_id']), fn ($query) => $query->where('service_destination_id', $filters['service_destination_id']))
             ->when(isset($filters['statut']), fn ($query) => $query->where('statut', $filters['statut']))
@@ -97,13 +101,14 @@ class TransfertController extends Controller
         Transfert $transfert,
         PatrimoineClient $patrimoine,
         HistoriqueWriter $historique,
+        NotificationWriter $notifications,
     ): JsonResponse {
         $data = $request->validate([
             'statut' => ['required', 'in:en_attente,approuvé,effectué,rejeté'],
             'motif_refus' => ['required_if:statut,rejeté', 'nullable', 'string', 'max:2000'],
         ]);
 
-        $resultat = DB::transaction(function () use ($request, $transfert, $data, $patrimoine, $historique): array {
+        $resultat = DB::transaction(function () use ($request, $transfert, $data, $patrimoine, $historique, $notifications): array {
             $transfert = Transfert::query()->lockForUpdate()->findOrFail($transfert->id);
             $ancienStatut = $transfert->statut;
             $transitions = [
@@ -147,6 +152,17 @@ class TransfertController extends Controller
                 ['statut' => $ancienStatut],
                 ['statut' => $nouveauStatut, 'transfert_id' => $transfert->id],
             );
+
+            $actorId = (int) $request->attributes->get('jwt_payload')['sub'];
+            if ($transfert->demandeur_id !== $actorId && in_array($nouveauStatut, ['approuvé', 'rejeté', 'effectué'], true)) {
+                $notifications->envoyer(
+                    (int) $transfert->demandeur_id,
+                    'transfert.'.$nouveauStatut,
+                    'Mise à jour de votre transfert',
+                    'Le transfert #'.$transfert->id.' est maintenant « '.$nouveauStatut.' ».',
+                    ['transfert_id' => $transfert->id, 'bien_id' => $transfert->bien_id, 'statut' => $nouveauStatut],
+                );
+            }
 
             return ['data' => $transfert->fresh(), 'ancien_statut' => $ancienStatut];
         });

@@ -4,7 +4,7 @@
 
 @section('content')
     <section class="welcome">
-        <p class="eyebrow">Gestion du patrimoine</p>
+        <p class="eyebrow">Patrimoine · Mise à disposition</p>
         <h1>Affectations</h1>
         <p>Suivez le service responsable et la période d’affectation de chaque bien.</p>
     </section>
@@ -12,10 +12,14 @@
     @if (session('success'))<p class="alert alert--success" role="status">{{ session('success') }}</p>@endif
     @if ($errors->any())<p class="alert alert--danger" role="alert">{{ $errors->first() }}</p>@endif
 
-    <section class="panel">
-        <div class="panel__head"><h2 class="panel__title">Nouvelle affectation</h2></div>
-        <form method="POST" action="{{ route('affectations.store') }}" class="form-grid">
-            @csrf
+    <section class="panel form-panel">
+        @if ($peutGererPatrimoine)
+            <div class="panel__head">
+                <div><p class="eyebrow">Mise à disposition</p><h2 class="panel__title">Nouvelle affectation</h2></div>
+                <span class="section-index">01</span>
+            </div>
+            <form method="POST" action="{{ route('affectations.store') }}" class="form-grid">
+                @csrf
             <div class="field">
                 <label for="bien_id">Bien</label>
                 <select class="input" id="bien_id" name="bien_id" required>
@@ -50,15 +54,20 @@
                 <label for="observation">Observation</label>
                 <input class="input" id="observation" name="observation" value="{{ old('observation') }}" maxlength="5000">
             </div>
-            <div class="form-actions"><button class="btn btn--primary" type="submit">Enregistrer l’affectation</button></div>
-        </form>
+                <div class="form-actions"><button class="btn btn--primary" type="submit">Enregistrer l’affectation</button></div>
+            </form>
+        @else
+            <x-read-only-notice/>
+        @endif
     </section>
 
     <section class="panel">
-        <div class="panel__head"><h2 class="panel__title">Affectations enregistrées</h2></div>
+        <div class="panel__head">
+            <div><p class="eyebrow">Suivi des biens</p><h2 class="panel__title">Affectations enregistrées</h2></div>
+        </div>
         <div class="table-wrap">
             <table class="table">
-                <thead><tr><th>Bien</th><th>Service</th><th>Début</th><th>Fin prévue</th><th>Statut</th><th>Action</th></tr></thead>
+                <thead><tr><th>Bien</th><th>Service</th><th>Début</th><th>Fin prévue</th><th>Statut</th><th>Documents</th>@if ($peutGererPatrimoine)<th>Action</th>@endif</tr></thead>
                 <tbody>
                     @forelse ($affectations as $affectation)
                         <tr>
@@ -67,21 +76,24 @@
                             <td>{{ substr($affectation['date_debut'], 0, 10) }}</td>
                             <td>{{ isset($affectation['date_fin']) ? substr($affectation['date_fin'], 0, 10) : '—' }}</td>
                             <td><span class="badge badge--{{ $affectation['statut'] === 'active' ? 'success' : 'neutral' }}">{{ ucfirst($affectation['statut']) }}</span></td>
-                            <td>
-                                @if ($affectation['statut'] === 'active')
-                                    <form method="POST" action="{{ route('affectations.update', $affectation['id']) }}">
-                                        @csrf
-                                        @method('PATCH')
-                                        <input type="hidden" name="statut" value="terminee">
-                                        <button class="btn btn--ghost" type="submit">Terminer</button>
-                                    </form>
-                                @else
-                                    —
-                                @endif
-                            </td>
+                            <td><a class="table-link" href="{{ route('documents.index', ['affectation', $affectation['id']]) }}">Justificatifs</a></td>
+                            @if ($peutGererPatrimoine)
+                                <td class="row-actions">
+                                    @if ($affectation['statut'] === 'active')
+                                        <form method="POST" action="{{ route('affectations.update', $affectation['id']) }}">
+                                            @csrf
+                                            @method('PATCH')
+                                            <input type="hidden" name="statut" value="terminee">
+                                            <button class="btn btn--ghost btn--compact" type="submit">Terminer</button>
+                                        </form>
+                                    @else
+                                        —
+                                    @endif
+                                </td>
+                            @endif
                         </tr>
                     @empty
-                        <tr><td colspan="6">Aucune affectation enregistrée.</td></tr>
+                        <tr><td colspan="{{ $peutGererPatrimoine ? 7 : 6 }}">Aucune affectation enregistrée.</td></tr>
                     @endforelse
                 </tbody>
             </table>

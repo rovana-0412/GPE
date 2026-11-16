@@ -13,8 +13,16 @@
         <p class="alert alert--danger" role="alert">{{ $errors->first() }}</p>
     @endif
 
-    <section class="panel">
-        <form method="POST"
+    <section class="panel form-panel">
+        @if ($peutGererPatrimoine)
+            <div class="form-panel__intro">
+                <span class="form-panel__step">01</span>
+                <div>
+                    <h2>Identification et affectation</h2>
+                    <p>Les champs marqués comme obligatoires doivent être renseignés avant l’enregistrement.</p>
+                </div>
+            </div>
+            <form method="POST"
               action="{{ $mode === 'creation' ? route('biens.store') : route('biens.update', $bien['id']) }}"
               class="form-grid">
             @csrf
@@ -105,10 +113,13 @@
                 </label>
             </div>
 
-            <div class="form-actions">
+            <div class="form-actions form-panel__actions">
                 <button class="btn btn--primary" type="submit">{{ $mode === 'creation' ? 'Enregistrer' : 'Mettre à jour' }}</button>
                 <a class="btn btn--ghost" href="{{ $mode === 'creation' ? route('biens.index') : route('biens.show', $bien['id']) }}">Annuler</a>
             </div>
-        </form>
+            </form>
+        @else
+            <x-read-only-notice/>
+        @endif
     </section>
 @endsection

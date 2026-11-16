@@ -2,6 +2,10 @@
 
 return [
 
+    'mouvements' => [
+        'url' => env('MOUVEMENTS_URL', 'http://mouvements-service:8000'),
+    ],
+
     /*
     |--------------------------------------------------------------------------
     | Third Party Services

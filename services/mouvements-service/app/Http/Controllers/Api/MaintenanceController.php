@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Maintenance;
 use App\Services\HistoriqueWriter;
+use App\Services\NotificationWriter;
 use App\Services\PatrimoineClient;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -18,12 +19,15 @@ class MaintenanceController extends Controller
     {
         $filters = $request->validate([
             'bien_id' => ['nullable', 'integer', 'min:1'],
+            'bien_ids' => ['nullable', 'array', 'max:100'],
+            'bien_ids.*' => ['integer', 'min:1'],
             'statut' => ['nullable', 'in:signalee,planifiee,en_cours,terminee,annulee'],
             'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
         ]);
 
         $maintenances = Maintenance::query()
             ->when(isset($filters['bien_id']), fn ($query) => $query->where('bien_id', $filters['bien_id']))
+            ->when(isset($filters['bien_ids']), fn ($query) => $query->whereIn('bien_id', $filters['bien_ids']))
             ->when(isset($filters['statut']), fn ($query) => $query->where('statut', $filters['statut']))
             ->latest('id')
             ->paginate($filters['per_page'] ?? 15)
@@ -77,6 +81,7 @@ class MaintenanceController extends Controller
         Maintenance $maintenance,
         PatrimoineClient $patrimoine,
         HistoriqueWriter $historique,
+        NotificationWriter $notifications,
     ): JsonResponse {
         $data = $request->validate([
             'bien_id' => ['sometimes', 'integer', 'min:1'],
@@ -100,7 +105,7 @@ class MaintenanceController extends Controller
             throw ValidationException::withMessages(['bien_id' => 'Le bien demandé n’existe pas.']);
         }
 
-        DB::transaction(function () use ($maintenance, $data, $historique): void {
+        DB::transaction(function () use ($request, $maintenance, $data, $historique, $notifications): void {
             $ancienneValeur = $maintenance->toArray();
             $maintenance->update($data);
             $historique->enregistrer(
@@ -109,6 +114,20 @@ class MaintenanceController extends Controller
                 $ancienneValeur,
                 $maintenance->fresh()->toArray(),
             );
+
+            $actorId = (int) $request->attributes->get('jwt_payload')['sub'];
+            $nouveauStatut = $maintenance->statut;
+            if (isset($data['statut'])
+                && $ancienneValeur['statut'] !== $nouveauStatut
+                && (int) $maintenance->utilisateur_id !== $actorId) {
+                $notifications->envoyer(
+                    (int) $maintenance->utilisateur_id,
+                    'maintenance.'.$nouveauStatut,
+                    'Mise à jour de votre maintenance',
+                    'La maintenance #'.$maintenance->id.' est maintenant « '.$nouveauStatut.' ».',
+                    ['maintenance_id' => $maintenance->id, 'bien_id' => $maintenance->bien_id, 'statut' => $nouveauStatut],
+                );
+            }
         });
         $maintenance->refresh();
 

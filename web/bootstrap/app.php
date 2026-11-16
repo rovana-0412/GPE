@@ -3,6 +3,7 @@
 use App\Exceptions\ServiceAuthenticationException;
 use App\Exceptions\ServiceUnavailableException;
 use App\Http\Middleware\EnsureJwtAuthenticated;
+use App\Http\Middleware\EnsureRole;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -17,6 +18,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->alias([
             'jwt.auth' => EnsureJwtAuthenticated::class,
+            'role' => EnsureRole::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

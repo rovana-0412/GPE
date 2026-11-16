@@ -61,6 +61,7 @@ services:
     environment:
       <<: [*laravel-environment, *database-environment]
       DB_DATABASE: gpe_patrimoine
+      MOUVEMENTS_URL: http://mouvements-service:8000
     depends_on:
       postgres:
         condition: service_healthy
@@ -85,6 +86,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+    volumes:
+      - mouvements_documents:/var/www/html/storage/app/private
     expose:
       - "8000"
     healthcheck:
@@ -139,3 +142,4 @@ services:
 
 volumes:
   postgres_data:
+  mouvements_documents:

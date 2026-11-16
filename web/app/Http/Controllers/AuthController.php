@@ -38,11 +38,13 @@ class AuthController extends Controller
             session([
                 'jwt_token' => $data['token'],
                 'user' => $data['user'],
+                'platform_settings' => $data['settings'] ?? config('platform.defaults'),
             ]);
 
             $request->session()->regenerate();
 
-            return redirect()->intended(route('dashboard'));
+            return redirect()->intended(route('dashboard'))
+                ->with('success', 'Connexion réussie. Bienvenue dans votre espace.');
         }
 
         return back()->withErrors([
@@ -56,7 +58,7 @@ class AuthController extends Controller
     public function logout(Request $request)
     {
         // Supprimer le JWT et les infos utilisateur de la session
-        session()->forget(['jwt_token', 'user']);
+        session()->forget(['jwt_token', 'user', 'platform_settings']);
 
         $request->session()->invalidate();
         $request->session()->regenerateToken();

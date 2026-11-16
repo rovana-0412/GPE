@@ -3,10 +3,18 @@
 @section('title', 'Biens')
 
 @section('content')
-    <section class="welcome">
-        <p class="eyebrow">Patrimoine de l’État</p>
-        <h1>Biens</h1>
-        <p>Consultez et gérez les biens recensés dans les services publics.</p>
+    <section class="welcome page-heading">
+        <div>
+            <p class="eyebrow">Registre patrimonial · État togolais</p>
+            <h1>Biens</h1>
+            <p>Consultez et gérez les biens recensés dans les services publics.</p>
+        </div>
+        @if ($peutGererPatrimoine)
+            <a class="btn btn--primary" href="{{ route('biens.create') }}">
+                <x-icon name="plus"/>
+                Enregistrer un bien
+            </a>
+        @endif
     </section>
 
     @if (session('success'))
@@ -18,9 +26,14 @@
 
     <section class="panel">
         <div class="panel__head">
-            <h2 class="panel__title">Liste des biens</h2>
-            <a class="btn btn--primary" href="{{ route('biens.create') }}">Ajouter un bien</a>
+            <div>
+                <p class="eyebrow">Inventaire</p>
+                <h2 class="panel__title">Liste des biens</h2>
+            </div>
         </div>
+        @unless ($peutGererPatrimoine)
+            <x-read-only-notice/>
+        @endunless
 
         <form method="GET" action="{{ route('biens.index') }}" class="form-grid">
             <div class="field">
@@ -55,11 +68,15 @@
                 </select>
             </div>
             <div class="form-actions">
-                <button class="btn btn--primary" type="submit">Filtrer</button>
+                <button class="btn btn--primary" type="submit"><x-icon name="search"/> Appliquer les filtres</button>
                 <a class="btn btn--ghost" href="{{ route('biens.index') }}">Réinitialiser</a>
             </div>
         </form>
 
+        <div class="list-meta">
+            <span>Résultats de l’inventaire</span>
+            <span>Valeurs en FCFA</span>
+        </div>
         <div class="table-wrap">
             <table class="table">
                 <thead>
@@ -80,9 +97,9 @@
                             <td>{{ $bien['designation'] }}</td>
                             <td>{{ data_get($bien, 'categorie.nom', '—') }}</td>
                             <td>{{ data_get($bien, 'service.nom', '—') }}</td>
-                            <td>{{ str_replace('_', ' ', $bien['etat']) }}</td>
+                            <td><span class="badge badge--{{ $bien['etat'] === 'bon_etat' ? 'success' : ($bien['etat'] === 'a_reparer' ? 'warning' : 'danger') }}">{{ ucfirst(str_replace('_', ' ', $bien['etat'])) }}</span></td>
                             <td class="num">{{ isset($bien['valeur_acquisition']) ? number_format((float) $bien['valeur_acquisition'], 0, ',', ' ') : '—' }}</td>
-                            <td><a href="{{ route('biens.show', $bien['id']) }}">Consulter</a></td>
+                            <td><a class="table-link" href="{{ route('biens.show', $bien['id']) }}">Ouvrir la fiche <x-icon name="arrow-right"/></a></td>
                         </tr>
                     @empty
                         <tr><td colspan="7">Aucun bien ne correspond à ces critères.</td></tr>

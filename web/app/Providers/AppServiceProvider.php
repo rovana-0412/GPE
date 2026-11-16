@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\Services\MicroserviceClient;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Str;
 use Illuminate\View\View as ViewInstance;
 
 class AppServiceProvider extends ServiceProvider
@@ -22,6 +23,22 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        View::composer('*', function (ViewInstance $view): void {
+            $utilisateur = session('user', []);
+            $role = data_get($utilisateur, 'role_slug', data_get($utilisateur, 'role'));
+            $roleSlug = Str::slug((string) $role);
+
+            $view->with('peutGererPatrimoine', in_array($roleSlug, [
+                'administrateur-general',
+                'gestionnaire-patrimoine',
+            ], true));
+            $view->with('peutGererUtilisateurs', $roleSlug === 'administrateur-general');
+            $view->with('parametresPlateforme', array_replace(
+                config('platform.defaults', []),
+                session('platform_settings', []),
+            ));
+        });
+
         View::composer('partials.sidebar', function (ViewInstance $view): void {
             if (! session()->has('jwt_token')) {
                 return;

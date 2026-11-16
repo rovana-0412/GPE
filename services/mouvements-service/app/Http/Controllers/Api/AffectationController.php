@@ -18,6 +18,8 @@ class AffectationController extends Controller
     {
         $filters = $request->validate([
             'bien_id' => ['nullable', 'integer', 'min:1'],
+            'bien_ids' => ['nullable', 'array', 'max:100'],
+            'bien_ids.*' => ['integer', 'min:1'],
             'service_id' => ['nullable', 'integer', 'min:1'],
             'statut' => ['nullable', 'in:active,terminee,annulee'],
             'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
@@ -25,6 +27,7 @@ class AffectationController extends Controller
 
         $affectations = Affectation::query()
             ->when(isset($filters['bien_id']), fn ($query) => $query->where('bien_id', $filters['bien_id']))
+            ->when(isset($filters['bien_ids']), fn ($query) => $query->whereIn('bien_id', $filters['bien_ids']))
             ->when(isset($filters['service_id']), fn ($query) => $query->where('service_id', $filters['service_id']))
             ->when(isset($filters['statut']), fn ($query) => $query->where('statut', $filters['statut']))
             ->latest('id')

@@ -9,7 +9,7 @@ L'application GPE utilise une architecture microservices avec une passerelle API
 ### 1. Web (Interface)
 
 - **Technologie** : Laravel 12 Blade
-- **Port** : 9003
+- **Port interne** : 8000
 - **Base de données** : Aucune (communique avec les services via API)
 - **Responsabilités** :
   - Affichage des pages (login, dashboard, CRUD)
@@ -20,7 +20,7 @@ L'application GPE utilise une architecture microservices avec une passerelle API
 ### 2. Auth-service
 
 - **Technologie** : Laravel 12 API-only
-- **Port** : 9000
+- **Port interne** : 8000
 - **Base de données** : `gpe_auth`
 - **Tables** : `roles`, `users`
 - **Responsabilités** :
@@ -44,7 +44,7 @@ L'application GPE utilise une architecture microservices avec une passerelle API
 ### 3. Patrimoine-service
 
 - **Technologie** : Laravel 12 API-only
-- **Port** : 9001
+- **Port interne** : 8000
 - **Base de données** : `gpe_patrimoine`
 - **Tables** : `ministeres`, `services`, `categories`, `biens`
 - **Responsabilités** :
@@ -59,17 +59,24 @@ L'application GPE utilise une architecture microservices avec une passerelle API
 - Lecture : tous les rôles authentifiés
 - Écriture : gestionnaire du patrimoine ou administrateur général
 
+**API justificatifs :**
+- `GET /api/documents?cible_type={type}&cible_id={id}` : consulter les métadonnées
+- `POST /api/documents` : téléverser une pièce en multipart
+- `GET /api/documents/{cibleType}/{cibleId}/{document}/telecharger` : télécharger après vérification du rattachement
+- `DELETE /api/documents/{cibleType}/{cibleId}/{document}` : supprimer après vérification du rattachement et du rôle
+
 ### 4. Mouvements-service
 
 - **Technologie** : Laravel 12 API-only
-- **Port** : 9002
+- **Port interne** : 8000
 - **Base de données** : `gpe_mouvements`
-- **Tables** : `affectations`, `transferts`, `maintenances`, `historique_operations`
+- **Tables** : `affectations`, `transferts`, `maintenances`, `historique_operations`, `documents_justificatifs`
 - **Responsabilités** :
   - CRUD affectations
   - Workflow transferts (brouillon → en_attente → approuvé → effectué)
   - CRUD maintenances
   - Historique des opérations
+  - Métadonnées et API des documents justificatifs, avec fichiers dans un stockage privé persistant
   - Vérification existence des biens via patrimoine-service
 
 **Workflow transfert :**
@@ -107,10 +114,13 @@ mouvements-service ← JSON bien ← patrimoine-service
 
 Le fichier `docker/gateway/nginx.conf` route les requêtes :
 
-- `/api/auth/*` → `auth-service:9000`
-- `/api/patrimoine/*` → `patrimoine-service:9001`
-- `/api/mouvements/*` → `mouvements-service:9002`
-- `/` → `web:9003`
+- `/api/auth/*` → `auth-service:8000`
+- `/api/patrimoine/*` → `patrimoine-service:8000`
+- `/api/mouvements/*` → `mouvements-service:8000`
+- `/api/documents*` → API documents du `mouvements-service`
+- `/` → `web:8000`
+
+Les services Laravel écoutent tous sur le port interne `8000`. PostgreSQL écoute sur `5432` dans le réseau Docker et sur `5433` côté hôte par défaut.
 
 ## Base de données
 
@@ -121,6 +131,8 @@ Chaque service a sa propre base de données PostgreSQL :
 - `gpe_patrimoine` : patrimoine
 - `gpe_mouvements` : mouvements
 - `gpe_test` : tests d'intégration
+
+Les documents référencent un bien ou une opération par `cible_type` et `cible_id` sans clé étrangère inter-service. Les fichiers sont conservés dans le volume Docker privé `mouvements_documents`, monté sur `storage/app/private`.
 
 ### Absence de clés étrangères inter-services
 

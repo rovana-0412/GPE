@@ -4,7 +4,7 @@
 
 @section('content')
     <section class="welcome">
-        <p class="eyebrow">Suivi technique</p>
+        <p class="eyebrow">Patrimoine · Suivi technique</p>
         <h1>Maintenances</h1>
         <p>Signalez les interventions et suivez leur avancement ainsi que leur coût en FCFA.</p>
     </section>
@@ -12,10 +12,14 @@
     @if (session('success'))<p class="alert alert--success" role="status">{{ session('success') }}</p>@endif
     @if ($errors->any())<p class="alert alert--danger" role="alert">{{ $errors->first() }}</p>@endif
 
-    <section class="panel">
-        <div class="panel__head"><h2 class="panel__title">Signaler une maintenance</h2></div>
-        <form method="POST" action="{{ route('maintenances.store') }}" class="form-grid">
-            @csrf
+    <section class="panel form-panel">
+        @if ($peutGererPatrimoine)
+            <div class="panel__head">
+                <div><p class="eyebrow">Intervention technique</p><h2 class="panel__title">Signaler une maintenance</h2></div>
+                <span class="section-index">01</span>
+            </div>
+            <form method="POST" action="{{ route('maintenances.store') }}" class="form-grid">
+                @csrf
             <div class="field">
                 <label for="bien_id">Bien concerné</label>
                 <select class="input" id="bien_id" name="bien_id" required>
@@ -49,15 +53,20 @@
                 <label for="prestataire">Prestataire</label>
                 <input class="input" id="prestataire" name="prestataire" value="{{ old('prestataire') }}" maxlength="255">
             </div>
-            <div class="form-actions"><button class="btn btn--primary" type="submit">Enregistrer la maintenance</button></div>
-        </form>
+                <div class="form-actions"><button class="btn btn--primary" type="submit">Enregistrer la maintenance</button></div>
+            </form>
+        @else
+            <x-read-only-notice/>
+        @endif
     </section>
 
     <section class="panel">
-        <div class="panel__head"><h2 class="panel__title">Interventions enregistrées</h2></div>
+        <div class="panel__head">
+            <div><p class="eyebrow">Carnet d’entretien</p><h2 class="panel__title">Interventions enregistrées</h2></div>
+        </div>
         <div class="table-wrap">
             <table class="table">
-                <thead><tr><th>Bien</th><th>Type</th><th>Description</th><th>Date</th><th>Coût (FCFA)</th><th>Statut</th><th>Mise à jour</th></tr></thead>
+                <thead><tr><th>Bien</th><th>Type</th><th>Description</th><th>Date</th><th>Coût (FCFA)</th><th>Statut</th><th>Documents</th>@if ($peutGererPatrimoine)<th>Mise à jour</th>@endif</tr></thead>
                 <tbody>
                     @forelse ($maintenances as $maintenance)
                         <tr>
@@ -66,22 +75,25 @@
                             <td>{{ $maintenance['description'] }}</td>
                             <td>{{ substr($maintenance['date_debut'], 0, 10) }}</td>
                             <td class="num">{{ isset($maintenance['cout']) ? number_format((float) $maintenance['cout'], 0, ',', ' ') : '—' }}</td>
-                            <td>{{ ucfirst(str_replace('_', ' ', $maintenance['statut'])) }}</td>
-                            <td>
-                                <form method="POST" action="{{ route('maintenances.update', $maintenance['id']) }}" class="form-grid">
-                                    @csrf @method('PATCH')
-                                    <label class="sr-only" for="statut_{{ $maintenance['id'] }}">Statut</label>
-                                    <select class="input" id="statut_{{ $maintenance['id'] }}" name="statut">
-                                        @foreach (['signalee', 'planifiee', 'en_cours', 'terminee', 'annulee'] as $statut)
-                                            <option value="{{ $statut }}" @selected($maintenance['statut'] === $statut)>{{ ucfirst(str_replace('_', ' ', $statut)) }}</option>
-                                        @endforeach
-                                    </select>
-                                    <button class="btn btn--ghost" type="submit">Mettre à jour</button>
-                                </form>
-                            </td>
+                            <td><span class="badge badge--{{ in_array($maintenance['statut'], ['terminee', 'annulee']) ? 'neutral' : ($maintenance['statut'] === 'en_cours' ? 'warning' : 'info') }}">{{ ucfirst(str_replace('_', ' ', $maintenance['statut'])) }}</span></td>
+                            <td><a class="table-link" href="{{ route('documents.index', ['maintenance', $maintenance['id']]) }}">Justificatifs</a></td>
+                            @if ($peutGererPatrimoine)
+                                <td>
+                                    <form method="POST" action="{{ route('maintenances.update', $maintenance['id']) }}" class="form-grid">
+                                        @csrf @method('PATCH')
+                                        <label class="sr-only" for="statut_{{ $maintenance['id'] }}">Statut</label>
+                                        <select class="input" id="statut_{{ $maintenance['id'] }}" name="statut">
+                                            @foreach (['signalee', 'planifiee', 'en_cours', 'terminee', 'annulee'] as $statut)
+                                                <option value="{{ $statut }}" @selected($maintenance['statut'] === $statut)>{{ ucfirst(str_replace('_', ' ', $statut)) }}</option>
+                                            @endforeach
+                                        </select>
+                                        <button class="btn btn--ghost" type="submit">Mettre à jour</button>
+                                    </form>
+                                </td>
+                            @endif
                         </tr>
                     @empty
-                        <tr><td colspan="7">Aucune maintenance enregistrée.</td></tr>
+                        <tr><td colspan="{{ $peutGererPatrimoine ? 8 : 7 }}">Aucune maintenance enregistrée.</td></tr>
                     @endforelse
                 </tbody>
             </table>

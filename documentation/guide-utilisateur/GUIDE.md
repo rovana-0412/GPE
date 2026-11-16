@@ -63,6 +63,17 @@ Le tableau de bord présente une synthèse du patrimoine :
 2. Confirmer l'action
 3. Le bien est marqué comme supprimé (SoftDelete) et n'apparaît plus dans la liste
 
+### Gérer les documents justificatifs
+
+La fiche du bien contient une section **Pièces justificatives**. Les mêmes fonctions sont accessibles depuis les liens **Justificatifs** des affectations, transferts et maintenances.
+
+1. Choisir le type de pièce (facture d'acquisition, bon de commande, procès-verbal de réception, fiche d'affectation, document de transfert, document de maintenance, certificat de propriété ou autre).
+2. Saisir le titre et, si nécessaire, la référence, la description et la date du document.
+3. Sélectionner un fichier PDF, JPEG, PNG, Word ou Excel de 10 Mo maximum, puis cliquer sur **Ajouter le justificatif**.
+4. Utiliser **Télécharger** pour consulter le fichier ou **Supprimer** pour le retirer.
+
+Le téléversement et la suppression sont réservés aux administrateurs généraux et gestionnaires du patrimoine. Les autres rôles peuvent consulter et télécharger les pièces auxquelles ils ont accès. Les fichiers sont stockés en privé et ne sont pas publiés dans le répertoire web.
+
 ## Gestion des catégories
 
 ### Consulter les catégories

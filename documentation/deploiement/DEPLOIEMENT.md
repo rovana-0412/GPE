@@ -173,22 +173,79 @@ php artisan serve --host=0.0.0.0 --port=9003 --no-reload &
 
 ## Sauvegarde et restauration
 
-### Sauvegarde
+Les bases et les justificatifs privés forment un ensemble cohérent à sauvegarder. Ne
+pas restaurer directement sur une base utilisée par l'application : une restauration
+se valide d'abord dans un environnement isolé. Conserver les sauvegardes chiffrées
+hors du serveur et limiter leur accès aux personnes autorisées.
+
+### Sauvegarde et vérification
+
+Depuis la racine du dépôt, avec Docker Compose et le fichier `.env` configurés :
 
 ```bash
-# Sauvegarder PostgreSQL
-docker exec gpe_postgres pg_dump -U gpe_user gpe_auth > backup_auth_$(date +%Y%m%d).sql
-docker exec gpe_postgres pg_dump -U gpe_user gpe_patrimoine > backup_patrimoine_$(date +%Y%m%d).sql
-docker exec gpe_postgres pg_dump -U gpe_user gpe_mouvements > backup_mouvements_$(date +%Y%m%d).sql
+set -eu
+backup_dir="backups/$(date -u +%Y%m%dT%H%M%SZ)"
+mkdir -p "$backup_dir"
+
+for database in gpe_auth gpe_patrimoine gpe_mouvements; do
+  docker compose exec -T postgres sh -lc \
+    "pg_dump -U \"\$POSTGRES_USER\" -Fc '$database'" \
+    > "$backup_dir/$database.dump"
+done
+
+docker compose exec -T mouvements-service \
+  tar -czf - -C /var/www/html/storage/app/private . \
+  > "$backup_dir/mouvements_documents.tar.gz"
+
+for database in gpe_auth gpe_patrimoine gpe_mouvements; do
+  docker compose exec -T postgres pg_restore --list \
+    < "$backup_dir/$database.dump" > /dev/null
+done
+tar -tzf "$backup_dir/mouvements_documents.tar.gz" > /dev/null
+sha256sum "$backup_dir"/* > "$backup_dir/SHA256SUMS"
 ```
 
-### Restauration
+La sauvegarde doit inclure les trois bases de production et le contenu du stockage
+privé `mouvements_documents`. Vérifier les sommes de contrôle après copie vers le
+lieu de conservation :
 
 ```bash
-# Restaurer PostgreSQL
-docker exec -i gpe_postgres psql -U gpe_user gpe_auth < backup_auth_20261114.sql
-docker exec -i gpe_postgres psql -U gpe_user gpe_patrimoine < backup_patrimoine_20261114.sql
-docker exec -i gpe_postgres psql -U gpe_user gpe_mouvements < backup_mouvements_20261114.sql
+cd backups/<horodatage>
+sha256sum -c SHA256SUMS
+```
+
+### Restauration contrôlée
+
+1. Obtenir l'autorisation du responsable de la plateforme et conserver une copie
+   intacte des sauvegardes.
+2. Créer un environnement PostgreSQL et un volume de documents isolés de la
+   production. Ne pas réutiliser les bases actives.
+3. Créer des bases de récupération vides, puis restaurer sans option `--clean` :
+
+```bash
+createdb -h <hote-recovery> -U <utilisateur> gpe_restore_auth
+createdb -h <hote-recovery> -U <utilisateur> gpe_restore_patrimoine
+createdb -h <hote-recovery> -U <utilisateur> gpe_restore_mouvements
+
+pg_restore --exit-on-error --no-owner --no-privileges \
+  -h <hote-recovery> -U <utilisateur> -d gpe_restore_auth gpe_auth.dump
+pg_restore --exit-on-error --no-owner --no-privileges \
+  -h <hote-recovery> -U <utilisateur> -d gpe_restore_patrimoine gpe_patrimoine.dump
+pg_restore --exit-on-error --no-owner --no-privileges \
+  -h <hote-recovery> -U <utilisateur> -d gpe_restore_mouvements gpe_mouvements.dump
+```
+
+4. Extraire les justificatifs dans un répertoire isolé, vérifier le nombre et
+   l'intégrité des fichiers, puis tester l'accès aux pièces depuis l'application
+   de récupération.
+5. Exécuter les contrôles d'intégrité et les parcours métier avant toute décision
+   de bascule. Une remise en production nécessite une procédure séparée,
+   approuvée et planifiée; aucune commande de cette procédure ne supprime ou
+   n'écrase les données de production.
+
+Enregistrer la date, les versions, les sommes de contrôle, le résultat de la
+restauration de test et la personne responsable. Définir et tester périodiquement
+les objectifs de reprise (RPO/RTO); ils restent à valider avec l'exploitant.
 ```
 
 ## Monitoring

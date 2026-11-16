@@ -1,10 +1,7 @@
-/* GPE - Point d'entree des styles "Heritage & Modernite" */
-@import '@fontsource-variable/fraunces';
+/* GPE - Système de design institutionnel */
+@import '@fontsource-variable/manrope';
 @import '@fontsource-variable/inter';
 
 @import './gpe/tokens.css';
 @import './gpe/base.css';
-@import './gpe/layout.css';
-@import './gpe/components.css';
-@import './gpe/dashboard.css';
-@import './gpe/auth.css';
+@import './gpe/institutional.css';

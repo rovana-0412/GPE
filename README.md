@@ -46,7 +46,7 @@ GPE est une plateforme permettant à l'État togolais de centraliser, suivre, g�
             │            │            │              │
     ┌───────▼──────┐ ┌───▼──────┐ ┌───▼──────┐ ┌───▼──────┐
     │  Web (Blade) │ │  Auth    │ │Patrimoine│ │Mouvements│
-    │   :9003      │ │ :9000    │ │  :9001   │ │  :9002   │
+    │   :8000      │ │ :8000    │ │  :8000   │ │  :8000   │
     └──────────────┘ └──────────┘ └──────────┘ └──────────┘
                             │            │            │
                             └────────────┼────────────┘
@@ -61,13 +61,15 @@ GPE est une plateforme permettant à l'État togolais de centraliser, suivre, g�
 - **web** : Interface Laravel Blade, sans base de données
 - **auth-service** : Authentification, gestion des utilisateurs et rôles
 - **patrimoine-service** : Biens, catégories, ministères, services
-- **mouvements-service** : Affectations, transferts, maintenances, historique
+- **mouvements-service** : Affectations, transferts, maintenances, historique et justificatifs (fichiers privés)
 
 **Bases de données :**
 - `gpe_auth` : Utilisateurs et rôles
 - `gpe_patrimoine` : Patrimoine
 - `gpe_mouvements` : Mouvements
 - `gpe_test` : Tests d'intégration
+
+Les métadonnées des justificatifs sont conservées dans `gpe_mouvements`. Les fichiers sont stockés hors du répertoire public dans le volume Docker `mouvements_documents`.
 
 ## Prérequis
 
@@ -109,6 +111,7 @@ docker compose up --build
 ```
 
 L'application est accessible sur **http://localhost:8080**
+PostgreSQL écoute sur le port hôte `5433` par défaut (port du conteneur : `5432`).
 
 ## Tests
 

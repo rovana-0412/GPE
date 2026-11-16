@@ -4,8 +4,10 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Bien;
+use App\Models\Acquisition;
 use App\Models\Categorie;
 use App\Models\Ministere;
+use App\Models\SortiePatrimoine;
 use App\Models\Service;
 use Illuminate\Http\JsonResponse;
 
@@ -36,6 +38,8 @@ class StatistiquesController extends Controller
                 'categories' => Categorie::count(),
                 'ministeres' => Ministere::count(),
                 'services' => Service::count(),
+                'acquisitions_en_cours' => Acquisition::whereIn('statut', ['brouillon', 'en_attente', 'receptionnee'])->count(),
+                'sorties_en_cours' => SortiePatrimoine::whereIn('statut', ['demandee', 'approuvee'])->count(),
                 'biens_par_type' => $categories->groupBy('type')
                     ->map(fn ($items): int => (int) $items->sum('biens_count'))
                     ->all(),

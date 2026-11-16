@@ -57,7 +57,21 @@ class BienController extends Controller
 
         abort_unless($response->successful(), $response->notFound() ? 404 : 500);
 
-        return view('patrimoine.biens.show', ['bien' => $response->json('data')]);
+        $documents = $client->request('mouvements', 'GET', '/api/documents', [
+            'query' => [
+                'cible_type' => 'bien',
+                'cible_id' => $id,
+                'per_page' => 100,
+            ],
+        ]);
+        abort_unless($documents->successful(), 502);
+
+        return view('patrimoine.biens.show', [
+            'bien' => $response->json('data'),
+            'documents' => $documents->json('data', []),
+            'documentsPagination' => $documents->json(),
+            'typesDocument' => config('documents.types'),
+        ]);
     }
 
     public function edit(string $id, MicroserviceClient $client): View

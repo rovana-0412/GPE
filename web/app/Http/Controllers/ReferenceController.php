@@ -69,9 +69,15 @@ class ReferenceController extends Controller
     public function index(Request $request, MicroserviceClient $client): View
     {
         $resource = $this->definition($request->route('resource'));
+        $filters = $request->validate([
+            'q' => ['nullable', 'string', 'max:100'],
+            'page' => ['nullable', 'integer', 'min:1'],
+        ]);
         $response = $client->request('patrimoine', 'GET', '/api/'.$request->route('resource'), [
-            'query' => ['page' => $request->integer('page', 1), 'per_page' => 15],
-        ])->json();
+            'query' => $filters + ['page' => 1, 'per_page' => 15],
+        ]);
+        abort_unless($response->successful(), $response->status());
+        $response = $response->json();
 
         return view('patrimoine.references.index', [
             'resource' => $request->route('resource'),

@@ -7,17 +7,19 @@ use Illuminate\Http\Client\Response;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
+use Illuminate\Support\Str;
 
 class MouvementController extends Controller
 {
-    public function affectations(MicroserviceClient $client): View
+    public function affectations(Request $request, MicroserviceClient $client): View
     {
+        $filters = $request->validate(['bien_id' => ['nullable', 'integer', 'min:1']]);
         $biens = $this->liste($client, 'patrimoine', '/api/biens');
         $services = $this->liste($client, 'patrimoine', '/api/services');
 
         return view('mouvements.affectations.index', [
             'affectations' => $client->request('mouvements', 'GET', '/api/affectations', [
-                'query' => ['per_page' => 100],
+                'query' => $filters + ['per_page' => 100],
             ])->json('data', []),
             'biens' => $biens,
             'services' => $services,
@@ -60,7 +62,7 @@ class MouvementController extends Controller
 
     public function transferts(Request $request, MicroserviceClient $client): View
     {
-        $filters = $request->only(['statut', 'service_origine_id', 'service_destination_id']);
+        $filters = $request->only(['statut', 'service_origine_id', 'service_destination_id', 'bien_id']);
         $biens = $this->liste($client, 'patrimoine', '/api/biens');
         $services = $this->liste($client, 'patrimoine', '/api/services');
 
@@ -108,16 +110,21 @@ class MouvementController extends Controller
         return redirect()->route('transferts.index')->with('success', 'Le statut du transfert a été mis à jour.');
     }
 
-    public function maintenances(MicroserviceClient $client): View
+    public function maintenances(Request $request, MicroserviceClient $client): View
     {
+        $filters = $request->validate([
+            'bien_id' => ['nullable', 'integer', 'min:1'],
+            'statut' => ['nullable', 'in:signalee,planifiee,en_cours,terminee,annulee'],
+        ]);
         $biens = $this->liste($client, 'patrimoine', '/api/biens');
 
         return view('mouvements.maintenances.index', [
             'maintenances' => $client->request('mouvements', 'GET', '/api/maintenances', [
-                'query' => ['per_page' => 100],
+                'query' => $filters + ['per_page' => 100],
             ])->json('data', []),
             'biens' => $biens,
             'biensParId' => collect($biens)->keyBy('id')->all(),
+            'filtres' => $filters,
         ]);
     }
 
@@ -158,11 +165,45 @@ class MouvementController extends Controller
 
     public function historique(Request $request, MicroserviceClient $client): View
     {
-        $operations = $client->request('mouvements', 'GET', '/api/historique', [
-            'query' => $request->only(['bien_id', 'utilisateur_id', 'action', 'page']) + ['per_page' => 30],
-        ])->json('data', []);
+        $filters = $request->validate([
+            'source' => ['nullable', 'in:mouvements,patrimoine,auth'],
+            'bien_id' => ['nullable', 'integer', 'min:1'],
+            'utilisateur_id' => ['nullable', 'integer', 'min:1'],
+            'action' => ['nullable', 'string', 'max:120'],
+            'q' => ['nullable', 'string', 'max:100'],
+            'page' => ['nullable', 'integer', 'min:1'],
+        ]);
+        $source = $filters['source'] ?? 'mouvements';
+        $role = Str::slug((string) data_get(session('user', []), 'role_slug', data_get(session('user', []), 'role', '')));
+        $canViewAdminAudit = in_array($role, ['administrateur-general', 'auditeur'], true);
 
-        return view('mouvements.historique.index', ['operations' => $operations]);
+        if ($source !== 'mouvements' && ! $canViewAdminAudit) {
+            abort(403);
+        }
+
+        $service = $source === 'auth' ? 'auth' : $source;
+        $path = $source === 'mouvements' ? '/api/historique' : '/api/audit';
+        $query = $filters + ['per_page' => 30];
+        unset($query['source']);
+        $response = $client->request($service, 'GET', $path, ['query' => $query]);
+        abort_unless($response->successful(), $response->status());
+        $operations = collect($response->json('data', []))->map(function (array $log) use ($source): array {
+            return [
+                'created_at' => $log['created_at'],
+                'utilisateur_id' => $source === 'auth' ? ($log['acteur_id'] ?? null) : ($log['utilisateur_id'] ?? null),
+                'bien_id' => $log['bien_id'] ?? null,
+                'action' => $log['action'],
+                'ancienne_valeur' => $log['ancienne_valeur'] ?? null,
+                'nouvelle_valeur' => $log['nouvelle_valeur'] ?? null,
+            ];
+        })->all();
+
+        return view('mouvements.historique.index', [
+            'operations' => $operations,
+            'pagination' => $response->json(),
+            'source' => $source,
+            'canViewAdminAudit' => $canViewAdminAudit,
+        ]);
     }
 
     private function liste(MicroserviceClient $client, string $service, string $path): array

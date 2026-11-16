@@ -13,8 +13,16 @@
         <p class="alert alert--danger" role="alert">{{ $errors->first() }}</p>
     @endif
 
-    <section class="panel">
-        <form method="POST"
+    <section class="panel form-panel">
+        @if ($peutGererPatrimoine)
+            <div class="form-panel__intro">
+                <span class="form-panel__step">01</span>
+                <div>
+                    <h2>{{ $definition['singular'] }}</h2>
+                    <p>Ces informations structurent le registre des biens publics.</p>
+                </div>
+            </div>
+            <form method="POST"
               action="{{ $mode === 'creation' ? route($resource.'.store') : route($resource.'.update', $item['id']) }}"
               class="form-grid">
             @csrf
@@ -58,10 +66,13 @@
                 </div>
             @endforeach
 
-            <div class="form-actions">
+            <div class="form-actions form-panel__actions">
                 <button class="btn btn--primary" type="submit">{{ $mode === 'creation' ? 'Créer' : 'Enregistrer' }}</button>
                 <a class="btn btn--ghost" href="{{ route($resource.'.index') }}">Annuler</a>
             </div>
-        </form>
+            </form>
+        @else
+            <x-read-only-notice/>
+        @endif
     </section>
 @endsection

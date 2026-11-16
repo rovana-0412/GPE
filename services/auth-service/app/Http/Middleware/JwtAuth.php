@@ -35,8 +35,16 @@ class JwtAuth
                 ], 401);
             }
 
+            if (! $user->actif) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Compte désactivé.',
+                ], 401);
+            }
+
             // Attacher l'utilisateur à la requête
             $request->user = $user;
+            $request->attributes->set('jwt_payload', (array) $decoded);
 
             return $next($request);
         } catch (\Exception $e) {

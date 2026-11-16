@@ -3,26 +3,35 @@
 @section('title', $bien['designation'])
 
 @section('content')
-    <section class="welcome">
-        <p class="eyebrow">Fiche de patrimoine · {{ $bien['reference'] }}</p>
-        <h1>{{ $bien['designation'] }}</h1>
-        <p>{{ $bien['description'] ?: 'Aucune description renseignée.' }}</p>
+    <section class="welcome record-heading">
+        <div>
+            <p class="eyebrow">Fiche de patrimoine · {{ $bien['reference'] }}</p>
+            <h1>{{ $bien['designation'] }}</h1>
+            <p>{{ $bien['description'] ?: 'Aucune description renseignée.' }}</p>
+        </div>
+        <span class="badge badge--{{ $bien['etat'] === 'bon_etat' ? 'success' : ($bien['etat'] === 'a_reparer' ? 'warning' : 'danger') }}">
+            {{ ucfirst(str_replace('_', ' ', $bien['etat'])) }}
+        </span>
     </section>
 
     @if (session('success'))
         <p class="success" role="status">{{ session('success') }}</p>
     @endif
 
-    <section class="panel">
+    <section class="panel record-panel">
         <div class="panel__head">
-            <h2 class="panel__title">Informations du bien</h2>
-            <div class="form-actions">
-                <a class="btn btn--primary" href="{{ route('biens.edit', $bien['id']) }}">Modifier</a>
-                <a class="btn btn--ghost" href="{{ route('biens.index') }}">Retour à la liste</a>
+            <div>
+                <p class="eyebrow">Registre patrimonial</p>
+                <h2 class="panel__title">Informations du bien</h2>
             </div>
+            <div class="form-actions">
+                @if ($peutGererPatrimoine)
+                    <a class="btn btn--primary" href="{{ route('biens.edit', $bien['id']) }}">Modifier</a>
+                @endif
+                <a class="btn btn--ghost" href="{{ route('biens.index') }}">Retour à la liste</a>
         </div>
 
-        <dl class="ledger">
+        <dl class="ledger record-ledger">
             <div class="ledger__row"><dt>Catégorie</dt><dd>{{ data_get($bien, 'categorie.nom', '—') }}</dd></div>
             <div class="ledger__row"><dt>Service responsable</dt><dd>{{ data_get($bien, 'service.nom', '—') }}</dd></div>
             <div class="ledger__row"><dt>Ministère</dt><dd>{{ data_get($bien, 'service.ministere.nom', '—') }}</dd></div>
@@ -34,11 +43,27 @@
             <div class="ledger__row"><dt>Localisation</dt><dd>{{ $bien['localisation'] ?: '—' }}</dd></div>
         </dl>
 
-        <form method="POST" action="{{ route('biens.destroy', $bien['id']) }}" class="mt-4"
-              onsubmit="return confirm('Archiver ce bien ?');">
-            @csrf
-            @method('DELETE')
-            <button type="submit" class="btn btn--danger">Archiver le bien</button>
-        </form>
+        @if ($peutGererPatrimoine)
+            <form method="POST" action="{{ route('biens.destroy', $bien['id']) }}" class="record-danger-zone"
+                  onsubmit="return confirm('Archiver ce bien ?');">
+                @csrf
+                @method('DELETE')
+                <div>
+                    <strong>Archivage</strong>
+                    <span>Le bien sera retiré des éléments actifs du registre.</span>
+                </div>
+                <button type="submit" class="btn btn--danger">Archiver le bien</button>
+            </form>
+        @else
+            <x-read-only-notice/>
+        @endif
     </section>
+
+    @include('documents.partials.panel', [
+        'documents' => $documents,
+        'cibleType' => 'bien',
+        'cibleId' => $bien['id'],
+        'typesDocument' => $typesDocument,
+        'pagination' => $documentsPagination,
+    ])
 @endsection

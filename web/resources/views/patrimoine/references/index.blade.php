@@ -3,10 +3,25 @@
 @section('title', $definition['title'])
 
 @section('content')
-    <section class="welcome">
-        <p class="eyebrow">Administration du patrimoine</p>
-        <h1>{{ $definition['title'] }}</h1>
-        <p>Gérez les référentiels utilisés pour décrire les biens publics.</p>
+    @php
+        $titresRegistre = [
+            'categories' => 'Catégories enregistrées',
+            'ministeres' => 'Ministères enregistrés',
+            'services' => 'Services enregistrés',
+        ];
+    @endphp
+
+    <section class="welcome page-heading">
+        <div>
+            <p class="eyebrow">Organisation · Référentiels</p>
+            <h1>{{ $definition['title'] }}</h1>
+            <p>Gérez les référentiels utilisés pour décrire les biens publics.</p>
+        </div>
+        @if ($peutGererPatrimoine)
+            <a class="btn btn--primary" href="{{ route($resource.'.create') }}">
+                <x-icon name="plus"/> Ajouter
+            </a>
+        @endif
     </section>
 
     @if (session('success'))
@@ -18,9 +33,14 @@
 
     <section class="panel">
         <div class="panel__head">
-            <h2 class="panel__title">{{ $definition['title'] }} enregistrés</h2>
-            <a class="btn btn--primary" href="{{ route($resource.'.create') }}">Ajouter</a>
+            <div>
+                <p class="eyebrow">Registre administratif</p>
+                <h2 class="panel__title">{{ $titresRegistre[$resource] }}</h2>
+            </div>
         </div>
+        @unless ($peutGererPatrimoine)
+            <x-read-only-notice/>
+        @endunless
 
         <div class="table-wrap">
             <table class="table">
@@ -29,7 +49,9 @@
                         @foreach ($definition['columns'] as $column)
                             <th>{{ $column['label'] }}</th>
                         @endforeach
-                        <th><span class="sr-only">Actions</span></th>
+                        @if ($peutGererPatrimoine)
+                            <th><span class="sr-only">Actions</span></th>
+                        @endif
                     </tr>
                 </thead>
                 <tbody>
@@ -38,18 +60,20 @@
                             @foreach ($definition['columns'] as $column)
                                 <td>{{ data_get($item, $column['key']) ?? '—' }}</td>
                             @endforeach
-                            <td class="form-actions">
-                                <a href="{{ route($resource.'.edit', $item['id']) }}">Modifier</a>
-                                <form method="POST" action="{{ route($resource.'.destroy', $item['id']) }}"
-                                      onsubmit="return confirm('Supprimer cet enregistrement ?');">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button class="btn btn--ghost" type="submit">Supprimer</button>
-                                </form>
-                            </td>
+                            @if ($peutGererPatrimoine)
+                                <td class="row-actions">
+                                    <a class="table-link" href="{{ route($resource.'.edit', $item['id']) }}">Modifier</a>
+                                    <form method="POST" action="{{ route($resource.'.destroy', $item['id']) }}"
+                                          onsubmit="return confirm('Supprimer cet enregistrement ?');">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button class="btn btn--ghost btn--compact" type="submit">Supprimer</button>
+                                    </form>
+                                </td>
+                            @endif
                         </tr>
                     @empty
-                        <tr><td colspan="{{ count($definition['columns']) + 1 }}">Aucun élément enregistré.</td></tr>
+                        <tr><td colspan="{{ count($definition['columns']) + ($peutGererPatrimoine ? 1 : 0) }}">Aucun élément enregistré.</td></tr>
                     @endforelse
                 </tbody>
             </table>

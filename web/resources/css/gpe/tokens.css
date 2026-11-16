@@ -1,82 +1,75 @@
-/* ==========================================================================
-   GPE - Tokens de design "Patrimoine National" (Togo)
-   Palette institutionnelle : vert profond dominant, or secondaire,
-   rouge reserve aux alertes et actions sensibles, fonds clairs.
-   Source unique de verite : couleurs, typographie, espacements.
-   ========================================================================== */
-
 :root {
-    /* ---- Palette nationale (imposee) --------------------------------- */
-    --vert-fonce:  #0E3B2C;   /* vert profond : dominant, sidebar, titres */
-    --vert-moyen:  #1D5C42;   /* vert institutionnel : navigation, actions */
-    --vert-doux:   #3E7C59;   /* vert clair : succes, etats positifs */
-    --or:          #D4A72C;   /* or : secondaire, accents, chiffres */
-    --or-clair:    #EBD9A0;   /* or pale : derives, fonds dorés discrets */
-    --rouge:       #B23A2E;   /* rouge : alertes, suppressions, sensible */
-    --encre:       #26292B;   /* texte principal */
-    --perle:       #F2F0E8;   /* fond clair chaud */
-    --ecru:        #FCFBF7;   /* surfaces, cartes */
-    --gris-doux:   #6E6A72;   /* texte secondaire */
+    --forest-950: #102f27;
+    --forest-900: #153f33;
+    --forest-800: #1d5141;
+    --forest-700: #2b6653;
+    --forest-100: #e8f0eb;
+    --gold-700: #947a3d;
+    --gold-500: #b89a56;
+    --gold-100: #f4efdf;
+    --red-700: #a53d36;
+    --red-100: #f8ecea;
+    --ink-900: #202a26;
+    --ink-700: #46534d;
+    --ink-500: #6d7a73;
+    --line: #e1e7e2;
+    --canvas: #f3f6f3;
+    --paper: #fffefa;
+    --white: #ffffff;
 
-    /* ---- Roles semantiques (a utiliser dans les composants) ----------- */
-    --color-bg:        var(--perle);
-    --color-surface:   var(--ecru);
-    --color-text:      var(--encre);
-    --color-primary:   var(--vert-fonce);
-    --color-nav:       var(--vert-moyen);
-    --color-accent:    var(--or);
-    --color-action:    var(--vert-moyen);
-    --color-danger:    var(--rouge);
-    --color-success:   var(--vert-doux);
+    --color-bg: var(--canvas);
+    --color-surface: var(--paper);
+    --color-text: var(--ink-900);
+    --color-primary: var(--forest-900);
+    --color-nav: var(--forest-800);
+    --color-accent: var(--gold-500);
+    --color-action: var(--forest-800);
+    --color-danger: var(--red-700);
+    --color-success: var(--forest-700);
+    --color-text-muted: var(--ink-500);
+    --color-border: var(--line);
+    --color-border-strong: #cbd5ce;
+    --color-action-hover: var(--forest-950);
+    --color-danger-soft: var(--red-100);
+    --color-success-soft: var(--forest-100);
+    --color-accent-soft: var(--gold-100);
+    --color-nav-line: rgba(232, 240, 235, 0.14);
 
-    /* Gris doux assombri pour une meilleure lisibilite (contraste WCAG AA) */
-    --color-text-muted: color-mix(in srgb, var(--gris-doux) 78%, var(--encre));
-
-    /* ---- Derives (melanges de la palette, aucune nouvelle teinte) ----- */
-    --color-border:        color-mix(in srgb, var(--encre) 12%, transparent);
-    --color-border-strong: color-mix(in srgb, var(--encre) 24%, transparent);
-    --color-action-hover:  color-mix(in srgb, var(--vert-moyen) 82%, black);
-    --color-danger-soft:   color-mix(in srgb, var(--rouge) 10%, var(--ecru));
-    --color-success-soft:  color-mix(in srgb, var(--vert-doux) 12%, var(--ecru));
-    --color-accent-soft:   color-mix(in srgb, var(--or) 26%, var(--ecru));
-    --color-nav-line:      color-mix(in srgb, var(--or) 24%, transparent);
-
-    /* ---- Typographie --------------------------------------------------- */
-    --font-display: 'Fraunces Variable', Georgia, 'Times New Roman', serif;
-    --font-body:    'Inter Variable', system-ui, -apple-system, 'Segoe UI', sans-serif;
+    --font-display: 'Manrope Variable', 'Manrope', sans-serif;
+    --font-body: 'Inter Variable', Inter, system-ui, -apple-system, 'Segoe UI', sans-serif;
 
     --text-xs:   0.75rem;
     --text-sm:   0.875rem;
     --text-base: 1rem;
     --text-lg:   1.125rem;
-    --text-xl:   1.375rem;
-    --text-2xl:  1.75rem;
-    --text-3xl:  2.25rem;
-    --text-display: clamp(2.25rem, 1.4rem + 3.2vw, 3.75rem);
-    --text-numeral: clamp(4rem, 2.5rem + 6vw, 7.5rem);
+    --text-xl:   1.25rem;
+    --text-2xl:  1.625rem;
+    --text-3xl:  2.125rem;
+    --text-display: clamp(2rem, 1.45rem + 2.3vw, 3.1rem);
 
     /* ---- Espacements --------------------------------------------------- */
     --space-1: 0.25rem;
     --space-2: 0.5rem;
     --space-3: 0.75rem;
     --space-4: 1rem;
-    --space-5: 1.5rem;
-    --space-6: 2rem;
-    --space-7: 3rem;
-    --space-8: 4.5rem;
+    --space-5: 1.25rem;
+    --space-6: 1.75rem;
+    --space-7: 2.5rem;
+    --space-8: 4rem;
 
     /* ---- Formes : angles sobres, plus institutionnels qu'arrondis ------ */
-    --radius-sm: 3px;
-    --radius-md: 6px;
-    --radius-lg: 12px;
+    --radius-sm: 5px;
+    --radius-md: 9px;
+    --radius-lg: 14px;
+    --radius-xl: 20px;
 
-    --shadow-sm: 0 1px 2px color-mix(in srgb, var(--vert-fonce) 8%, transparent);
-    --shadow-md: 0 8px 24px color-mix(in srgb, var(--vert-fonce) 12%, transparent);
+    --shadow-sm: 0 2px 8px rgba(16, 47, 39, 0.045);
+    --shadow-md: 0 16px 42px rgba(16, 47, 39, 0.11);
 
     /* ---- Mise en page -------------------------------------------------- */
-    --sidebar-width: 17rem;
-    --topbar-height: 4.5rem;
-    --content-max:   80rem;
+    --sidebar-width: 16.5rem;
+    --topbar-height: 5.25rem;
+    --content-max:   100rem;
 
     /* ---- Animation ----------------------------------------------------- */
     --ease: cubic-bezier(0.22, 0.61, 0.36, 1);

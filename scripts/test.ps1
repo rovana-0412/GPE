@@ -36,22 +36,29 @@ if (-not $databasePort) {
 $env:DB_CONNECTION = 'pgsql'
 $env:DB_HOST = '127.0.0.1'
 $env:DB_PORT = $databasePort
-$env:DB_DATABASE = 'gpe_test'
 $env:DB_USERNAME = $databaseUsername
 $env:DB_PASSWORD = $databasePassword
 $env:DB_URL = ''
 
 $services = @(
-    'services\auth-service',
-    'services\patrimoine-service',
-    'services\mouvements-service',
-    'web'
+    @{ Path = 'services\auth-service'; Database = 'auth' },
+    @{ Path = 'services\patrimoine-service'; Database = 'patrimoine' },
+    @{ Path = 'services\mouvements-service'; Database = 'mouvements' },
+    @{ Path = 'web'; Database = 'web' }
 )
+$runId = '{0}_{1}' -f (Get-Date -Format 'yyyyMMddHHmmss'), ([Guid]::NewGuid().ToString('N').Substring(0, 6))
 $failed = $false
 
 foreach ($service in $services) {
-    Write-Host "`n=== Tests : $service ==="
-    Push-Location (Join-Path $root $service)
+    $database = "gpe_validation_${runId}_$($service.Database)"
+    & docker compose exec -T postgres createdb -U $databaseUsername $database
+    if ($LASTEXITCODE -ne 0) {
+        throw "Impossible de créer la base de test isolée $database. Aucune base existante n'a été supprimée."
+    }
+
+    $env:DB_DATABASE = $database
+    Write-Host "`n=== Tests : $($service.Path) sur $database ==="
+    Push-Location (Join-Path $root $service.Path)
     try {
         & php .\vendor\bin\phpunit
         if ($LASTEXITCODE -ne 0) {
