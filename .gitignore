@@ -18,3 +18,4 @@ postgres_data/
 Thumbs.db
 
 cookies*.txt
+backups/
