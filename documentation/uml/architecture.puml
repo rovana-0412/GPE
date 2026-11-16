@@ -1,0 +1,47 @@
+@startuml Architecture Microservices GPE
+
+skinparam componentStyle rectangle
+
+package "API Gateway (Nginx)" {
+    [Nginx :8080] as Gateway
+}
+
+package "Services Laravel" {
+    [Web :9003\nBlade] as Web
+    [Auth-service :9000\nJWT] as Auth
+    [Patrimoine-service :9001\nBiens] as Patrimoine
+    [Mouvements-service :9002\nTransferts] as Mouvements
+}
+
+package "PostgreSQL" {
+    database "gpe_auth" as DB_Auth
+    database "gpe_patrimoine" as DB_Pat
+    database "gpe_mouvements" as DB_Mouv
+}
+
+Gateway -down-> Web : "/"
+Gateway -down-> Auth : "/api/auth/*"
+Gateway -down-> Patrimoine : "/api/patrimoine/*"
+Gateway -down-> Mouvements : "/api/mouvements/*"
+
+Web -right-> Auth : JWT login
+Web -right-> Patrimoine : API biens
+Web -right-> Mouvements : API mouvements
+
+Auth -down-> DB_Auth : roles, users
+Patrimoine -down-> DB_Pat : biens, categories\nministeres, services
+Mouvements -down-> DB_Mouv : affectations\ntransferts, maintenances
+
+Patrimoine -right-> Mouvements : vérification bien
+
+note right of Gateway
+  Port 8080 → 80
+  Routing HTTP
+end note
+
+note left of DB_Auth
+  Séparation des données
+  par service
+end note
+
+@enduml

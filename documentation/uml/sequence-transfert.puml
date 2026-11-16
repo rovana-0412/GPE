@@ -1,0 +1,50 @@
+@startuml Séquence Transfert de Bien
+
+actor "Utilisateur" as User
+participant "Web" as Web
+participant "Auth-service" as Auth
+participant "Mouvements-service" as Mouvements
+participant "Patrimoine-service" as Patrimoine
+database "gpe_mouvements" as DB_Mouv
+database "gpe_patrimoine" as DB_Pat
+
+User -> Web : Demander transfert
+Web -> Auth : Vérifier JWT (session)
+Auth --> Web : Payload valide
+Web -> Mouvements : POST /api/mouvements/transferts\n{bien_id, service_source_id,\nservice_dest_id, justification}
+Mouvements -> DB_Mouv : Créer transfert (statut=brouillon)
+DB_Mouv --> Mouvements : OK
+Mouvements --> Web : Transfert créé (brouillon)
+
+User -> Web : Soumettre transfert
+Web -> Mouvements : PATCH /api/mouvements/transferts/{id}/statut\n{statut: en_attente}
+Mouvements -> DB_Mouv : Mettre à jour statut
+DB_Mouv --> Mouvements : OK
+Mouvements --> Web : Transfert en attente
+
+User -> Web : Valider transfert
+Web -> Mouvements : PATCH /api/mouvements/transferts/{id}/statut\n{statut: approuvé}
+Mouvements -> DB_Mouv : Mettre à jour statut
+DB_Mouv --> Mouvements : OK
+Mouvements -> Patrimoine : GET /api/patrimoine/biens/{bien_id}
+Patrimoine -> DB_Pat : Récupérer bien
+DB_Pat --> Patrimoine : Bien
+Patrimoine --> Mouvements : Bien existe
+Mouvements -> Patrimoine : PUT /api/patrimoine/biens/{bien_id}\n{service_id: service_dest_id}
+Patrimoine -> DB_Pat : Mettre à jour bien
+DB_Pat --> Patrimoine : OK
+Patrimoine --> Mouvements : Bien mis à jour
+Mouvements -> DB_Mouv : Mettre à jour statut=effectué
+DB_Mouv --> Mouvements : OK
+Mouvements -> DB_Mouv : Créer historique_operation
+DB_Mouv --> Mouvements : OK
+Mouvements --> Web : Transfert effectué
+Web --> User : Confirmation
+
+note right of Mouvements
+  En cas d'échec patrimoine-service :
+  - Le transfert reste approuvé
+  - Erreur renvoyée à l'utilisateur
+end note
+
+@enduml

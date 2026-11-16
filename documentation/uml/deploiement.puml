@@ -1,0 +1,51 @@
+@startuml Déploiement GPE
+
+cloud "Internet" {
+    [Utilisateur] as User
+}
+
+node "Serveur de production" {
+    [Nginx :443/80] as Nginx
+    [Web :9003] as Web
+    [Auth-service :9000] as Auth
+    [Patrimoine-service :9001] as Patrimoine
+    [Mouvements-service :9002] as Mouvements
+    [PostgreSQL :5432] as PostgreSQL
+    [Docker Compose] as Docker
+}
+
+User -down-> Nginx : HTTPS
+
+Nginx -down-> Web : HTTP proxy
+Nginx -down-> Auth : HTTP proxy
+Nginx -down-> Patrimoine : HTTP proxy
+Nginx -down-> Mouvements : HTTP proxy
+
+Web -down-> Auth : HTTP
+Web -down-> Patrimoine : HTTP
+Web -down-> Mouvements : HTTP
+
+Auth -down-> PostgreSQL : TCP
+Patrimoine -down-> PostgreSQL : TCP
+Mouvements -down-> PostgreSQL : TCP
+
+Docker -up-> Web : Container
+Docker -up-> Auth : Container
+Docker -up-> Patrimoine : Container
+Docker -up-> Mouvements : Container
+Docker -up-> PostgreSQL : Container
+
+note right of Nginx
+  SSL/TLS (Let's Encrypt)
+  Routing HTTP
+end note
+
+note left of PostgreSQL
+  4 bases séparées
+  gpe_auth
+  gpe_patrimoine
+  gpe_mouvements
+  gpe_test
+end note
+
+@enduml

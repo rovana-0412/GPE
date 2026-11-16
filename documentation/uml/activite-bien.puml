@@ -1,0 +1,28 @@
+@startuml Activité Enregistrement d'un Bien
+
+start
+:Utilisateur connecté;
+:Vérifier JWT;
+
+if (Rôle = gestionnaire ou admin) then (oui)
+    :Afficher formulaire de création;
+    :Saisir informations :\n- Référence\n- Désignation\n- Description\n- Catégorie\n- Type\n- Nature\n- Date d'acquisition\n- Valeur (FCFA)\n- État\n- Localisation\n- Ministère\n- Service;
+    :Valider formulaire;
+
+    if (Données valides) then (oui)
+        :POST /api/patrimoine/biens;
+        :Patrimoine-service enregistre bien\nen base gpe_patrimoine;
+        :Créer historique_operation\n(creation bien);
+        :Retourner bien créé;
+        :Afficher confirmation;
+        stop
+    else (non)
+        :Afficher erreurs validation;
+        stop
+    endif
+else (non)
+    :Afficher erreur 403\nPermissions insuffisantes;
+    stop
+endif
+
+@enduml

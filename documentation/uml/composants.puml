@@ -1,0 +1,45 @@
+@startuml Composants GPE
+
+package "Couche Présentation" {
+    [Nginx Gateway] as Gateway
+    [Web Blade] as Web
+}
+
+package "Couche Services" {
+    [Auth-service] as Auth
+    [Patrimoine-service] as Patrimoine
+    [Mouvements-service] as Mouvements
+}
+
+package "Couche Données" {
+    [PostgreSQL gpe_auth] as DB_Auth
+    [PostgreSQL gpe_patrimoine] as DB_Pat
+    [PostgreSQL gpe_mouvements] as DB_Mouv
+}
+
+Gateway -down-> Web : HTTP
+Gateway -down-> Auth : HTTP
+Gateway -down-> Patrimoine : HTTP
+Gateway -down-> Mouvements : HTTP
+
+Web -right-> Auth : HTTP (JWT)
+Web -right-> Patrimoine : HTTP (JWT)
+Web -right-> Mouvements : HTTP (JWT)
+
+Auth -down-> DB_Auth : PDO
+Patrimoine -down-> DB_Pat : PDO
+Mouvements -down-> DB_Mouv : PDO
+
+Patrimoine -right-> Mouvements : HTTP
+
+note right of Gateway
+  Port 8080
+  Routing HTTP
+end note
+
+note left of DB_Auth
+  Séparation des données
+  par service
+end note
+
+@enduml
