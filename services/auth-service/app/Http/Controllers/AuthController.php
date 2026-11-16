@@ -30,9 +30,12 @@ class AuthController extends Controller
             ], 401);
         }
 
+        $roleSlug = $user->role ? strtolower(str_replace(' ', '-', $user->role->nom)) : 'unknown';
+
         $payload = [
             'sub' => $user->id,
-            'role' => $user->role_id,
+            'role' => $roleSlug,
+            'role_id' => $user->role_id,
             'service_id' => $user->service_id,
             'iat' => time(),
             'exp' => time() + (2 * 60 * 60), // 2 heures
@@ -49,6 +52,7 @@ class AuthController extends Controller
                     'id' => $user->id,
                     'name' => $user->name,
                     'email' => $user->email,
+                    'role_slug' => $roleSlug,
                     'role_id' => $user->role_id,
                     'service_id' => $user->service_id,
                 ],
