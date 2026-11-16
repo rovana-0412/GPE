@@ -1,5 +1,6 @@
 -- Initialisation PostgreSQL pour GPE
 -- Création des bases de données distinctes pour chaque service
+-- Les permissions sont gérées par POSTGRES_USER dans docker-compose.yml
 
 -- Base de données pour auth-service
 CREATE DATABASE gpe_auth;
@@ -12,9 +13,3 @@ CREATE DATABASE gpe_mouvements;
 
 -- Base de données réservée aux tests
 CREATE DATABASE gpe_test;
-
--- Permissions
-GRANT ALL PRIVILEGES ON DATABASE gpe_auth TO gpe_user;
-GRANT ALL PRIVILEGES ON DATABASE gpe_patrimoine TO gpe_user;
-GRANT ALL PRIVILEGES ON DATABASE gpe_mouvements TO gpe_user;
-GRANT ALL PRIVILEGES ON DATABASE gpe_test TO gpe_user;
