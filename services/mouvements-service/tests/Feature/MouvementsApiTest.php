@@ -696,7 +696,7 @@ class MouvementsApiTest extends TestCase
     public function test_transfer_keeps_approved_status_when_patrimoine_update_fails(): void
     {
         Http::fake(function (ClientRequest $request) {
-            if ($request->method() === 'PATCH') {
+            if ($request->method() === 'PUT') {
                 return Http::response(['message' => 'Erreur distante'], 500);
             }
 
@@ -708,11 +708,12 @@ class MouvementsApiTest extends TestCase
         });
 
         $token = $this->token();
+        $reviewer = $this->tokenForUser(77);
         $transfertId = $this->createTransfer($token);
         $this->withToken($token)->patchJson('/api/transferts/'.$transfertId.'/statut', [
             'statut' => 'en_attente',
         ])->assertOk();
-        $this->withToken($token)->patchJson('/api/transferts/'.$transfertId.'/statut', [
+        $this->withToken($reviewer)->patchJson('/api/transferts/'.$transfertId.'/statut', [
             'statut' => 'approuvé',
         ])->assertOk();
 
@@ -732,11 +733,12 @@ class MouvementsApiTest extends TestCase
     {
         $this->fakePatrimoine();
         $token = $this->token();
+        $reviewer = $this->tokenForUser(77);
         $transfertId = $this->createTransfer($token);
         $this->withToken($token)->patchJson('/api/transferts/'.$transfertId.'/statut', [
             'statut' => 'en_attente',
         ])->assertOk();
-        $this->withToken($token)->patchJson('/api/transferts/'.$transfertId.'/statut', [
+        $this->withToken($reviewer)->patchJson('/api/transferts/'.$transfertId.'/statut', [
             'statut' => 'approuvé',
         ])->assertOk();
 
@@ -745,7 +747,7 @@ class MouvementsApiTest extends TestCase
         ])->assertOk()
             ->assertJsonPath('data.statut', 'effectué');
 
-        Http::assertSent(fn (ClientRequest $request) => $request->method() === 'PATCH'
+        Http::assertSent(fn (ClientRequest $request) => $request->method() === 'PUT'
             && str_ends_with($request->url(), '/api/biens/1')
             && $request['service_id'] === 20);
         $this->assertDatabaseHas('transferts', ['id' => $transfertId, 'statut' => 'effectué']);

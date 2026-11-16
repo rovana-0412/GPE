@@ -123,19 +123,88 @@ class PerimetreAccesTest extends TestCase
         $this->assertDatabaseHas('biens', ['id' => $this->bienB->id, 'deleted_at' => null]);
     }
 
-    public function test_agent_ne_peut_pas_ecrire_meme_dans_son_perimetre_selon_les_routes(): void
+    public function test_agent_peut_ecrire_dans_son_perimetre(): void
     {
-        // Le groupe de routes « écriture par périmètre » est partiellement masqué
-        // par le groupe gestionnaire ; on documente le comportement actuel.
         $response = $this->withToken($this->token('agent-gestionnaire', $this->serviceA1->id))
             ->postJson('/api/biens', [
                 'reference' => 'BIEN-TEST-AGENT',
                 'designation' => 'Test agent',
                 'categorie_id' => $this->bienA->categorie_id,
                 'service_id' => $this->serviceA1->id,
+                'valeur_acquisition' => 1000,
             ]);
 
-        $this->assertContains($response->status(), [201, 403]);
+        $response->assertCreated();
+    }
+
+    public function test_agent_ne_peut_pas_ecrire_hors_perimetre(): void
+    {
+        // Création dans un service d'un autre ministère
+        $response = $this->withToken($this->token('agent-gestionnaire', $this->serviceA1->id))
+            ->postJson('/api/biens', [
+                'reference' => 'BIEN-TEST-AGENT-HS',
+                'designation' => 'Test agent hors périmètre',
+                'categorie_id' => $this->bienA->categorie_id,
+                'service_id' => $this->serviceB1->id,
+                'valeur_acquisition' => 1000,
+            ]);
+
+        $response->assertForbidden();
+
+        // Création dans un autre service du même ministère
+        $response = $this->withToken($this->token('agent-gestionnaire', $this->serviceA1->id))
+            ->postJson('/api/biens', [
+                'reference' => 'BIEN-TEST-AGENT-HS2',
+                'designation' => 'Test agent autre service',
+                'categorie_id' => $this->bienA->categorie_id,
+                'service_id' => $this->serviceA2->id,
+                'valeur_acquisition' => 1000,
+            ]);
+
+        $response->assertForbidden();
+    }
+
+    public function test_responsable_peut_ecrire_dans_son_ministere(): void
+    {
+        // Le responsable peut écrire sur un bien de n'importe quel service de son ministère
+        $this->withToken($this->token('responsable-ministeriel', $this->serviceA1->id))
+            ->putJson('/api/biens/'.$this->bienA->id, ['designation' => 'Bien mis à jour par le responsable'])
+            ->assertOk();
+
+        $this->assertDatabaseHas('biens', ['id' => $this->bienA->id, 'designation' => 'Bien mis à jour par le responsable']);
+    }
+
+    public function test_auditeur_voit_les_biens_en_lecture(): void
+    {
+        // F5 : l'auditeur doit pouvoir consulter les biens (cohérent avec les statistiques globales)
+        $refs = $this->references($this->token('auditeur', null));
+
+        $this->assertContains('BIEN-A1', $refs);
+        $this->assertContains('BIEN-B1', $refs);
+    }
+
+    public function test_auditeur_accede_au_journal_d_audit(): void
+    {
+        // F2 : la route /audit autorise administrateur-general ET auditeur
+        $this->withToken($this->token('auditeur', null))
+            ->getJson('/api/audit')
+            ->assertOk();
+    }
+
+    public function test_roles_sans_service_ne_peuvent_pas_ecrire(): void
+    {
+        foreach (['responsable-ministeriel', 'agent-gestionnaire'] as $role) {
+            $response = $this->withToken($this->token($role, null))
+                ->postJson('/api/biens', [
+                    'reference' => 'BIEN-TEST-SANS-SERVICE',
+                    'designation' => 'Test sans service',
+                    'categorie_id' => $this->bienA->categorie_id,
+                    'service_id' => $this->serviceA1->id,
+                    'valeur_acquisition' => 1000,
+                ]);
+
+            $response->assertForbidden();
+        }
     }
 
     public function test_auditeur_ne_peut_pas_ecrire(): void

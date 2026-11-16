@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Affectation;
 use App\Services\HistoriqueWriter;
 use App\Services\PatrimoineClient;
+use App\Services\PerimetreScope;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -14,7 +15,7 @@ use Symfony\Component\HttpFoundation\Response;
 
 class AffectationController extends Controller
 {
-    public function index(Request $request): JsonResponse
+    public function index(Request $request, PerimetreScope $scope): JsonResponse
     {
         $filters = $request->validate([
             'bien_id' => ['nullable', 'integer', 'min:1'],
@@ -25,7 +26,8 @@ class AffectationController extends Controller
             'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
         ]);
 
-        $affectations = Affectation::query()
+        $affectations = $scope
+            ->apply(Affectation::query(), $request)
             ->when(isset($filters['bien_id']), fn ($query) => $query->where('bien_id', $filters['bien_id']))
             ->when(isset($filters['bien_ids']), fn ($query) => $query->whereIn('bien_id', $filters['bien_ids']))
             ->when(isset($filters['service_id']), fn ($query) => $query->where('service_id', $filters['service_id']))
@@ -79,8 +81,10 @@ class AffectationController extends Controller
         return response()->json(['data' => $affectation], Response::HTTP_CREATED);
     }
 
-    public function show(Affectation $affectation): JsonResponse
+    public function show(Request $request, Affectation $affectation, PerimetreScope $scope): JsonResponse
     {
+        $scope->authorizeService($request, $affectation->service_id !== null ? (int) $affectation->service_id : null);
+
         return response()->json(['data' => $affectation]);
     }
 

@@ -27,6 +27,7 @@ Route::middleware('jwt.auth')->group(function (): void {
     Route::get('audit', [AuditController::class, 'index'])
         ->middleware('role:administrateur-general,auditeur');
 
+    // Écritures métier avec périmètre (ServiceWriteScope dans les contrôleurs)
     Route::middleware('role:administrateur-general,gestionnaire-patrimoine,responsable-ministeriel,agent-gestionnaire')->group(function (): void {
         Route::post('biens', [BienController::class, 'store']);
         Route::put('biens/{bien}', [BienController::class, 'update']);
@@ -37,16 +38,8 @@ Route::middleware('jwt.auth')->group(function (): void {
         Route::patch('sorties/{sortie}/statut', [SortiePatrimoineController::class, 'transition']);
     });
 
-    // Routes d'écriture (nécessitent rôle gestionnaire ou admin)
+    // Données de référence : gestionnaire du patrimoine et administrateur uniquement
     Route::middleware('role:gestionnaire-patrimoine')->group(function (): void {
-        Route::post('biens', [BienController::class, 'store']);
-        Route::put('biens/{bien}', [BienController::class, 'update']);
-        Route::delete('biens/{bien}', [BienController::class, 'destroy']);
-        Route::post('acquisitions', [AcquisitionController::class, 'store']);
-        Route::patch('acquisitions/{acquisition}/statut', [AcquisitionController::class, 'transition']);
-        Route::post('sorties', [SortiePatrimoineController::class, 'store']);
-        Route::patch('sorties/{sortie}/statut', [SortiePatrimoineController::class, 'transition']);
-
         Route::post('categories', [CategorieController::class, 'store']);
         Route::put('categories/{categorie}', [CategorieController::class, 'update']);
         Route::delete('categories/{categorie}', [CategorieController::class, 'destroy']);

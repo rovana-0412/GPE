@@ -4,12 +4,13 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\HistoriqueOperation;
+use App\Services\PerimetreScope;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class HistoriqueOperationController extends Controller
 {
-    public function index(Request $request): JsonResponse
+    public function index(Request $request, PerimetreScope $scope): JsonResponse
     {
         $filters = $request->validate([
             'bien_id' => ['nullable', 'integer', 'min:1'],
@@ -21,7 +22,8 @@ class HistoriqueOperationController extends Controller
             'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
         ]);
 
-        $operations = HistoriqueOperation::query()
+        $operations = $scope
+            ->applyBien(HistoriqueOperation::query(), $request)
             ->when(isset($filters['bien_id']), fn ($query) => $query->where('bien_id', $filters['bien_id']))
             ->when(isset($filters['bien_ids']), fn ($query) => $query->whereIn('bien_id', $filters['bien_ids']))
             ->when(isset($filters['utilisateur_id']), fn ($query) => $query->where('utilisateur_id', $filters['utilisateur_id']))

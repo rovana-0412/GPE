@@ -8,6 +8,7 @@ use App\Models\InventaireLigne;
 use App\Services\HistoriqueWriter;
 use App\Services\NotificationWriter;
 use App\Services\PatrimoineClient;
+use App\Services\PerimetreScope;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -16,7 +17,7 @@ use Symfony\Component\HttpFoundation\Response;
 
 class InventaireController extends Controller
 {
-    public function index(Request $request): JsonResponse
+    public function index(Request $request, PerimetreScope $scope): JsonResponse
     {
         $filters = $request->validate([
             'service_id' => ['nullable', 'integer', 'min:1'],
@@ -24,8 +25,8 @@ class InventaireController extends Controller
             'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
         ]);
 
-        $inventaires = Inventaire::query()
-            ->withCount('lignes')
+        $inventaires = $scope
+            ->apply(Inventaire::query()->withCount('lignes'), $request)
             ->when(isset($filters['service_id']), fn ($query) => $query->where('service_id', $filters['service_id']))
             ->when(isset($filters['statut']), fn ($query) => $query->where('statut', $filters['statut']))
             ->latest('id')
@@ -63,8 +64,10 @@ class InventaireController extends Controller
         return response()->json(['data' => $inventaire], Response::HTTP_CREATED);
     }
 
-    public function show(Request $request, Inventaire $inventaire, PatrimoineClient $patrimoine): JsonResponse
+    public function show(Request $request, Inventaire $inventaire, PatrimoineClient $patrimoine, PerimetreScope $scope): JsonResponse
     {
+        $scope->authorizeService($request, $inventaire->service_id !== null ? (int) $inventaire->service_id : null);
+
         $filters = $request->validate([
             'biens_non_controles_page' => ['nullable', 'integer', 'min:1'],
         ]);

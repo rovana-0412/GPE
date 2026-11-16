@@ -129,6 +129,23 @@ class PatrimoineClient
         return $acquisition;
     }
 
+    /** @return array<int, array<string, mixed>> */
+    public function services(string $token): array
+    {
+        $response = $this->send('GET', '/api/services?per_page=100', $token);
+
+        if (! $response->successful()) {
+            throw new PatrimoineServiceException(
+                'Les services n’ont pas pu être chargés auprès du service patrimoine.',
+                $response->serverError() ? 503 : 502,
+            );
+        }
+
+        $data = $response->json('data');
+
+        return is_array($data) ? $data : [];
+    }
+
     public function changerService(int $bienId, int $serviceId, string $token): void
     {
         $response = $this->send('PUT', '/api/biens/'.$bienId, $token, [

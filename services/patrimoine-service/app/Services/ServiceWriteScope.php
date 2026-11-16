@@ -14,7 +14,7 @@ class ServiceWriteScope
         $payload = $request->attributes->get('jwt_payload', []);
         $role = $payload['role'] ?? '';
 
-        if (in_array($role, ['administrateur-general', 'gestionnaire-patrimoine'], true)) {
+        if (in_array($role, ['administrateur-general', 'gestionnaire-patrimoine', 'auditeur'], true)) {
             return null;
         }
 

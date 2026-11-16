@@ -7,6 +7,7 @@ use App\Models\Maintenance;
 use App\Services\HistoriqueWriter;
 use App\Services\NotificationWriter;
 use App\Services\PatrimoineClient;
+use App\Services\PerimetreScope;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -15,7 +16,7 @@ use Symfony\Component\HttpFoundation\Response;
 
 class MaintenanceController extends Controller
 {
-    public function index(Request $request): JsonResponse
+    public function index(Request $request, PerimetreScope $scope): JsonResponse
     {
         $filters = $request->validate([
             'bien_id' => ['nullable', 'integer', 'min:1'],
@@ -25,7 +26,8 @@ class MaintenanceController extends Controller
             'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
         ]);
 
-        $maintenances = Maintenance::query()
+        $maintenances = $scope
+            ->applyBien(Maintenance::query(), $request)
             ->when(isset($filters['bien_id']), fn ($query) => $query->where('bien_id', $filters['bien_id']))
             ->when(isset($filters['bien_ids']), fn ($query) => $query->whereIn('bien_id', $filters['bien_ids']))
             ->when(isset($filters['statut']), fn ($query) => $query->where('statut', $filters['statut']))
@@ -71,8 +73,10 @@ class MaintenanceController extends Controller
         return response()->json(['data' => $maintenance], Response::HTTP_CREATED);
     }
 
-    public function show(Maintenance $maintenance): JsonResponse
+    public function show(Request $request, Maintenance $maintenance, PerimetreScope $scope): JsonResponse
     {
+        $scope->authorizeBien($request, $maintenance->bien_id !== null ? (int) $maintenance->bien_id : null);
+
         return response()->json(['data' => $maintenance]);
     }
 

@@ -7,6 +7,7 @@ use App\Models\Transfert;
 use App\Services\HistoriqueWriter;
 use App\Services\NotificationWriter;
 use App\Services\PatrimoineClient;
+use App\Services\PerimetreScope;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -15,7 +16,7 @@ use Symfony\Component\HttpFoundation\Response;
 
 class TransfertController extends Controller
 {
-    public function index(Request $request): JsonResponse
+    public function index(Request $request, PerimetreScope $scope): JsonResponse
     {
         $filters = $request->validate([
             'bien_id' => ['nullable', 'integer', 'min:1'],
@@ -27,7 +28,8 @@ class TransfertController extends Controller
             'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
         ]);
 
-        $transferts = Transfert::query()
+        $transferts = $scope
+            ->applyTransfert(Transfert::query(), $request)
             ->when(isset($filters['bien_id']), fn ($query) => $query->where('bien_id', $filters['bien_id']))
             ->when(isset($filters['bien_ids']), fn ($query) => $query->whereIn('bien_id', $filters['bien_ids']))
             ->when(isset($filters['service_origine_id']), fn ($query) => $query->where('service_origine_id', $filters['service_origine_id']))
@@ -91,8 +93,14 @@ class TransfertController extends Controller
         return response()->json(['data' => $transfert], Response::HTTP_CREATED);
     }
 
-    public function show(Transfert $transfert): JsonResponse
+    public function show(Request $request, Transfert $transfert, PerimetreScope $scope): JsonResponse
     {
+        $scope->authorizeTransfert(
+            $request,
+            (int) $transfert->service_origine_id,
+            (int) $transfert->service_destination_id,
+        );
+
         return response()->json(['data' => $transfert]);
     }
 
@@ -122,6 +130,11 @@ class TransfertController extends Controller
 
             if (! in_array($nouveauStatut, $transitions[$ancienStatut] ?? [], true)) {
                 abort(Response::HTTP_UNPROCESSABLE_ENTITY, "Transition de statut invalide : {$ancienStatut} vers {$nouveauStatut}.");
+            }
+
+            if (in_array($nouveauStatut, ['approuvé', 'rejeté'], true)
+                && (int) $transfert->demandeur_id === (int) ($request->attributes->get('jwt_payload')['sub'] ?? 0)) {
+                abort(Response::HTTP_FORBIDDEN, 'Le demandeur ne peut pas approuver ou rejeter son propre transfert.');
             }
 
             $token = (string) $request->bearerToken();
