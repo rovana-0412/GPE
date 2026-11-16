@@ -112,24 +112,10 @@ L'application est accessible sur **http://localhost:8080**
 
 ## Tests
 
-Tests d'intégration sur PostgreSQL `gpe_test` :
+Tests d'intégration sur PostgreSQL `gpe_test` (Docker Compose doit être démarré et `.env` renseigné) :
 
 ```bash
-# Tests du service auth
-cd services/auth-service
-php artisan test
-
-# Tests du service patrimoine
-cd services/patrimoine-service
-php artisan test
-
-# Tests du service mouvements
-cd services/mouvements-service
-php artisan test
-
-# Tests de l'interface web
-cd web
-php artisan test
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\test.ps1
 ```
 
 ## Comptes de démonstration

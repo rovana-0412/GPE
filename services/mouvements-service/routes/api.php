@@ -28,5 +28,6 @@ Route::middleware('jwt.auth')->group(function (): void {
 
         Route::post('maintenances', [MaintenanceController::class, 'store']);
         Route::put('maintenances/{maintenance}', [MaintenanceController::class, 'update']);
+        Route::patch('maintenances/{maintenance}', [MaintenanceController::class, 'update']);
     });
 });

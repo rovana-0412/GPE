@@ -89,6 +89,15 @@
 - **Éventuelle incohérence** : si un service échoue après qu'un autre a réussi
 - **Pas de refresh token** : JWT durée fixe 2h
 
+### ✅ Correctifs de configuration des tests (16 novembre 2026)
+- ✅ Les tests hôtes utilisent maintenant le port PostgreSQL configurable de `.env` au lieu d'imposer 5433
+- ✅ Suppression des identifiants PostgreSQL codés en dur dans les configurations PHPUnit
+- ✅ Configuration d'une APP_KEY dédiée aux tests patrimoine, mouvements et web
+- ✅ Correction des jetons de test utilisant le rôle `admin` non reconnu par le middleware
+- ✅ Ajout de `PATCH /api/maintenances/{id}` pour aligner l'API sur l'appel partiel du web, en conservant `PUT`
+- ✅ Ajout de `scripts/test.ps1` pour exécuter séquentiellement les quatre suites PHPUnit sur `gpe_test`
+- ✅ Résultats vérifiés : auth 6 tests / 22 assertions, patrimoine 7 / 34, mouvements 9 / 49, web 11 / 43 (toutes réussies)
+
 ## Commande de lancement
 
 ```bash

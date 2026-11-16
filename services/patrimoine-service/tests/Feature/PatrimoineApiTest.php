@@ -180,7 +180,7 @@ class PatrimoineApiTest extends TestCase
     {
         return JWT::encode([
             'sub' => '42',
-            'role' => 'admin',
+            'role' => 'administrateur-general',
             'service_id' => null,
             'iat' => now()->timestamp,
             'exp' => now()->addHours(2)->timestamp,
