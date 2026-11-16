@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Http;
 /**
  * Vérifie auprès de l'auth-service qu'un compte est toujours actif.
  * Le JWT ne fait que transporter l'identité : le statut est revérifié
- * en base via GET /api/auth/me (protégé par jwt.auth côté auth-service).
+ * en base via GET /api/me (protégé par jwt.auth côté auth-service).
  *
  * Retour : true = actif, false = désactivé, null = statut indéterminé
  * (auth-service injoignable ou réponse inattendue) — jamais mis en cache.
@@ -34,7 +34,7 @@ class CompteActifVerifier
             $response = Http::withToken($token)
                 ->timeout(3)
                 ->acceptJson()
-                ->get(rtrim((string) config('services.auth.url'), '/').'/api/auth/me');
+                ->get(rtrim((string) config('services.auth.url'), '/').'/api/me');
         } catch (\Throwable) {
             return null;
         }

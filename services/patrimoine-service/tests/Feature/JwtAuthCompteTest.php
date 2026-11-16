@@ -39,14 +39,14 @@ class JwtAuthCompteTest extends TestCase
 
     public function test_compte_actif_accede_a_l_api(): void
     {
-        Http::fake(['*/api/auth/me' => Http::response(['success' => true], 200)]);
+        Http::fake(['*/api/me' => Http::response(['success' => true], 200)]);
 
         $this->withToken($this->token())->getJson('/api/biens')->assertOk();
     }
 
     public function test_compte_desactive_est_refuse(): void
     {
-        Http::fake(['*/api/auth/me' => Http::response(['success' => false, 'message' => 'Compte désactivé.'], 401)]);
+        Http::fake(['*/api/me' => Http::response(['success' => false, 'message' => 'Compte désactivé.'], 401)]);
 
         $this->withToken($this->token())->getJson('/api/biens')->assertUnauthorized();
     }
@@ -74,7 +74,7 @@ class JwtAuthCompteTest extends TestCase
 
     public function test_auth_service_indisponible_refuse_l_acces(): void
     {
-        Http::fake(['*/api/auth/me' => Http::response(['message' => 'Erreur serveur'], 500)]);
+        Http::fake(['*/api/me' => Http::response(['message' => 'Erreur serveur'], 500)]);
 
         $this->withToken($this->token())->getJson('/api/biens')->assertStatus(503);
     }
@@ -88,7 +88,7 @@ class JwtAuthCompteTest extends TestCase
 
     public function test_le_statut_est_mis_en_cache_pour_eviter_les_appels_repetes(): void
     {
-        Http::fake(['*/api/auth/me' => Http::response(['success' => true], 200)]);
+        Http::fake(['*/api/me' => Http::response(['success' => true], 200)]);
 
         $this->withToken($this->token())->getJson('/api/biens')->assertOk();
         $this->withToken($this->token())->getJson('/api/biens')->assertOk();
@@ -98,7 +98,7 @@ class JwtAuthCompteTest extends TestCase
 
     public function test_jeton_expire_reste_refuse_avant_toute_verification(): void
     {
-        Http::fake(['*/api/auth/me' => Http::response(['success' => true], 200)]);
+        Http::fake(['*/api/me' => Http::response(['success' => true], 200)]);
 
         $expired = JWT::encode([
             'sub' => '42',
@@ -114,7 +114,7 @@ class JwtAuthCompteTest extends TestCase
 
     public function test_sans_token_aucun_appel_auth(): void
     {
-        Http::fake(['*/api/auth/me' => Http::response(['success' => true], 200)]);
+        Http::fake(['*/api/me' => Http::response(['success' => true], 200)]);
 
         $this->getJson('/api/biens')->assertUnauthorized();
         Http::assertNothingSent();
