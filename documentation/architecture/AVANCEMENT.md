@@ -1,8 +1,37 @@
-# Microservices GPE — Avancement final
+# Microservices GPE — Avancement
 
 > Branche : `feature/microservices`
 > Objectif : plateforme GPE microservices exploitable sur http://localhost:8080
-> Dernière mise à jour : après validation des suites du 17 novembre 2026
+> Dernière mise à jour : validation complète du 16 novembre 2026
+
+## Validation de bout en bout — 16 novembre 2026
+
+### Rebuild et migrations contrôlées
+- ✅ Rebuild des 4 images Docker avec le code local (commit `55db1f8` + correctifs).
+- ✅ Correction `web/Dockerfile` : `libzip5` réinstallée après purge des paquets `-dev` (requis par `ext-zip` → exports Excel/PDF).
+- ✅ `nginx -s reload` du gateway pour charger le routage `/api/*` corrigé.
+- ✅ 10 migrations additives appliquées explicitement, service par service, après sauvegardes vérifiées : auth (statut compte, audit, paramètres), patrimoine (acquisitions, sorties, journal), mouvements (inventaires, notifications ; documents déjà migrées).
+- ✅ `migrate:status` : aucune migration en attente sur les trois services.
+- ✅ Sauvegardes SQL du 16/11 restaurées en bases temporaires isolées avec succès ; volume `mouvements_documents` préservé.
+
+### Résultats des tests (base `gpe_test`, PostgreSQL)
+- **Total : 74 tests réussis, 0 échec, 0 ignoré** (501 assertions) — auth 13, patrimoine 12, mouvements 25, web 24.
+- Détail et distinctions automatique/réel dans `documentation/audit/AUDIT.md`.
+
+### Scénario métier exécuté en conditions réelles
+- ✅ Bien `GPE-DEMO-001` créé → affectation → transfert complet (brouillon → en attente → approuvé → effectué, service mis à jour 6 → 5) → maintenance → campagne d'inventaire → sortie exécutée (bien archivé sans suppression).
+- ✅ Permissions vérifiées : auditeur refusé en écriture (403) et sur l'administration ; gestionnaire refusé sur `/admin/users`.
+- ✅ Exports PDF (3 pages) et XLSX générés réellement ; justificatif PDF uploadé, stocké dans le volume privé et retéléchargé à l'identique.
+- ✅ Notifications de sortie, audits auth et journal patrimoine alimentés.
+- ✅ Correctif critique : `PatrimoineClient` utilisait `PATCH /api/biens/{id}` au lieu de `PUT` — les transferts `effectué` échouaient ; corrigé au commit `51f7b9c`.
+
+### Données de démonstration ajoutées en production
+- Bien `GPE-DEMO-001` (sorti/archivé), utilisateurs `gestionnaire@gpe.local` et `auditeur@gpe.local`, et les opérations associées. Données fictives conservées pour la démonstration.
+
+### Reste à faire
+- Exercer's en live les périmètres des rôles `responsable-ministeriel` et `agent-gestionnaire`, et l'inventaire complet (constats + réconciliation).
+- Mettre à jour `AVANCEMENT.md`/`AUDIT.md` à chaque lot validé (ce document et `documentation/audit/AUDIT.md` sont à jour au 16/11).
+- Préparer et documenter l'hébergement gratuit (aucun déploiement sans autorisation).
 
 ## Mise à jour du chantier — 16 novembre 2026
 
@@ -73,7 +102,7 @@ Ces suites ont été exécutées sur les bases isolées de validation disponible
 ### ✅ Phase 2 — Auth-service
 - ✅ Migrations : `roles` et `users` (sans FK inter-services)
 - ✅ Modèles : `Role`, `User` (colonnes `role_id`, `service_id` conservées)
-- ✅ Seeders : `RoleSeeder.php`, `UserSeeder.php` (admin: admin@gpe.local / GPE_Admin_2026!)
+- ✅ Seeders : `RoleSeeder.php`, `UserSeeder.php` (admin créé via `ADMIN_INITIAL_PASSWORD`, compte existant jamais réécrit)
 - ✅ `composer require firebase/php-jwt`
 - ✅ Route `POST /api/login` : vérifie credentials, émet JWT HS256 (2h, payload avec slug de rôle)
 - ✅ Route `GET /api/me` : renvoie l'utilisateur connecté
@@ -168,7 +197,7 @@ Accès : http://localhost:8080
 ## Comptes de test
 
 - **Email** : `admin@gpe.local`
-- **Mot de passe** : `GPE_Admin_2026!`
+- **Mot de passe** : défini par `ADMIN_INITIAL_PASSWORD` lors de la première installation (voir `documentation/deploiement/DEPLOIEMENT.md`)
 - **Rôle** : Administrateur général
 
 ## État des tests
@@ -206,8 +235,6 @@ d96a7e4 Docs: valider la phase patrimoine
 
 ## Prochaines étapes
 
-- Compléter les autorisations d'écriture par ministère/service et séparer initiateur et validateur sur les processus métier.
-- Construire et exécuter des scénarios E2E réels par rôle sur une stack correspondant au code courant; les suites PHPUnit existantes n'en tiennent pas lieu.
-- Examiner séparément le schéma de chacune des bases pour documenter 1FN/2FN/3FN et les anomalies effectivement observées.
-- Comparer les diagrammes PlantUML (cas d'utilisation, classes, séquences, composants et déploiement) au code actuel.
-- Revalider `docker compose build`, la configuration Compose et Nginx lorsque Docker Hub sera accessible. Ne pas redémarrer les conteneurs sans autorisation.
+- Exercer en live les périmètres `responsable-ministeriel` / `agent-gestionnaire` et l'inventaire complet (constats, réconciliation).
+- Documenter l'hébergement gratuit et la procédure de déploiement/sauvegarde/restauration.
+- Avant exposition publique : `APP_DEBUG=false`, secrets de production, HTTPS, domaine.

@@ -1,93 +1,120 @@
-# Audit du projet GPE — Rapport initial
+# Audit et validation du projet GPE
 
-> Date : 14 novembre 2026 · Branche de référence : `design/heritage-modernite`
-> Branche d'intégration : `integration/gpe-togo`
+> Branche de référence : `feature/microservices`
+> Dernière validation complète : 16 novembre 2026
+> Architecture : microservices Laravel 12 / PHP 8.2 / PostgreSQL 16 / Docker Compose / Nginx
 
-## 1. État du dépôt
+Ce document remplace le rapport d'audit initial (monolithe `application/`, 14 novembre 2026).
+L'application a depuis été restructurée en quatre applications conteneurisées.
 
-- Dépôt Git : `GPE/` (remote GitHub `rovana-0412/GPE`)
-- Application Laravel 12 / PHP 8.2 / PostgreSQL 16 / Blade / Vite dans `application/`
-- Branche `design/heritage-modernite` : 7 commits (état initial + identité visuelle « Héritage & Modernité »)
-- Base de démonstration : 6 biens, 10 catégories, 4 ministères, 9 services, 1 utilisateur admin, 5 rôles
+## 1. Architecture livrée
 
-## 2. Ce qui fonctionne
-
-| Domaine | État |
-|---|---|
-| Authentification | Connexion / déconnexion fonctionnelles, routes protégées par le middleware `auth` |
-| Tableau de bord | Identité « Héritage & Modernité » complète, données réelles PostgreSQL, responsive, états vides |
-| Design system | `resources/css/gpe/` : tokens, base, layout, composants, dashboard ; polices Fraunces/Inter auto-hébergées |
-| Composants Blade | `logo`, `icon` (12 icônes), `nav-item` (état « Bientôt »), `empty-state` |
-| Schéma BDD | 12 tables cohérentes avec relations |
-| Modèles | 10 modèles Eloquent avec relations correctes |
-| Seeders | 5 rôles conformes à la mission, catégories immobilier/mobilier, ministères et services de démonstration |
-
-## 3. Ce qui est incomplet
-
-- Aucun CRUD métier : seuls `AuthController` et `DashboardController` existent.
-- Page de connexion non redesignée (prévue dans la nouvelle identité visuelle togolaise).
-- Aucune gestion de permissions : `User::role()` existe mais aucun Gate/Policy/middleware de rôle.
-- `biens` : manque nature, source de financement, ministère gestionnaire, documents, photos, localisation structurée.
-- Tables manquantes : notifications, documents justificatifs, localisations (régions/préfectures/communes).
-- `historique_operations` : table prête (ancienne/nouvelle valeur JSON, IP) mais jamais alimentée.
-- Statuts `biens.etat` / `biens.statut` : aucune logique métier ne les fait évoluer.
-- Exports PDF/Excel : non implémentés.
-- Tests : uniquement les tests d'exemple Laravel.
-
-## 4. Anomalies et risques identifiés
-
-| # | Anomalie / Risque | Traitement |
+| Composant | Rôle | Base de données |
 |---|---|---|
-| 1 | `phpunit.xml` utilisait la base de démonstration `gpe_db` | Corrigé : base dédiée `gpe_test` |
-| 2 | Fuseau `UTC`, locale `en`, `APP_NAME=Laravel` | Corrigé : `Africa/Lome`, `fr`, `GPE` |
-| 3 | Conflit port 5432 : PostgreSQL natif Windows vs conteneur Docker | `docker-compose.override.yml` publie le conteneur sur 5433 ; `.env` sur `DB_PORT=5433` |
-| 4 | `.env.example` obsolète (sqlite, Laravel) | Réécrit : pgsql, GPE, fr, sans secrets |
-| 5 | `APP_DEBUG=true` | Acceptable en local ; à passer à `false` en démo/déploiement |
-| 6 | `welcome.blade.php`, `app.css`/`app.js` (Tailwind) hérités et inutilisés | À nettoyer lors de la branche design |
-| 7 | 9 services en base (8 annoncés précédemment) | Donnée de démo cohérente en interne |
-| 8 | Dossiers `documentation/` vides | À remplir au fil des branches |
+| `web/` | Interface Blade, session JWT, aucun accès direct aux bases | aucune |
+| `services/auth-service/` | Comptes, rôles, JWT HS256 (2 h), audit, paramètres | `gpe_auth` |
+| `services/patrimoine-service/` | Biens, catégories, ministères, services, acquisitions, sorties | `gpe_patrimoine` |
+| `services/mouvements-service/` | Affectations, transferts, maintenances, inventaires, notifications, justificatifs | `gpe_mouvements` |
+| `gpe-postgres-1` | PostgreSQL 16, une base par service + `gpe_test` | — |
+| `gpe-gateway-1` | Nginx : `/api/auth/*`, `/api/patrimoine/*`, `/api/mouvements/*`, `/api/documents`, reste → `web` | — |
 
-## 5. Corrections Phase 1 (réalisées)
+Communication inter-services strictement par API HTTP avec le JWT de
+l'utilisateur ; aucun service ne lit les tables d'un autre.
 
-- Branche `integration/gpe-togo` créée depuis `design/heritage-modernite`.
-- `docker-compose.override.yml` recréé (mapping `5433:5432`) ; conteneur recréé, ports vérifiés, persistance confirmée après `restart`.
-- Base `gpe_test` créée dans le conteneur ; `phpunit.xml` pointe dessus (identifiants hérités du `.env`, aucun secret versionné).
-- `php artisan test` : 2 tests passent, `gpe_db` intacte (1 utilisateur, 6 biens).
-- `config/app.php` : `timezone = env('APP_TIMEZONE', 'Africa/Lome')`, locales `fr`.
-- `config/gpe.php` créé : devise `XOF` / `FCFA`, formats de nombres, mentions institutionnelles.
-- `.env` : `APP_NAME=GPE`, `APP_LOCALE=fr`, `APP_FALLBACK_LOCALE=fr`, `APP_FAKER_LOCALE=fr_FR`, `APP_TIMEZONE=Africa/Lome`.
-- `.env.example` réécrit sans secrets.
-- `tests/Feature/ExampleTest.php` corrigé (l'accueil redirige désormais les invités).
+## 2. Tests automatisés — résultats exacts
 
-## 6. Plan de branches
+Exécutés le 16 novembre 2026 sur la base PostgreSQL dédiée `gpe_test`
+(`RefreshDatabase`, migrations rejouées par suite, aucun accès aux bases
+de production) :
 
-```
-master (intouchée)
- └── integration/gpe-togo
-      ├── feature/design-togo           Identité visuelle togolaise (vert/or/rouge)
-      ├── feature/authentification      Rôles, permissions, mot de passe, redesign login
-      ├── feature/dashboard             Statistiques étendues + filtres
-      ├── feature/gestion-biens         CRUD biens, fiche, historique
-      ├── feature/categories            CRUD catégories
-      ├── feature/ministeres-services   CRUD ministères et services
-      ├── feature/affectations          Affectations + règles métier
-      ├── feature/transferts            Workflow de transfert
-      ├── feature/maintenances          Maintenance + coûts FCFA
-      ├── feature/utilisateurs-roles    Comptes et rôles
-      ├── feature/historique            Journal de traçabilité
-      ├── feature/rapports              Inventaires + exports
-      ├── feature/notifications         Alertes
-      ├── feature/tests-securite        Suite de tests + durcissement
-      └── feature/documentation         README, guides, sauvegarde
-```
+| Suite | Tests réussis | Échoués | Ignorés | Assertions |
+|---|---|---|---|---|
+| auth-service | 13 | 0 | 0 | 64 |
+| patrimoine-service | 12 | 0 | 0 | 95 |
+| mouvements-service | 25 | 0 | 0 | 194 |
+| web | 24 | 0 | 0 | 148 |
+| **Total** | **74** | **0** | **0** | **501** |
 
-Ordre : design → authentification → dashboard → biens/catégories → ministères/services →
-affectations/transferts → maintenance → utilisateurs/historique → rapports/notifications →
-tests → documentation. Chaque branche part de `integration/gpe-togo`, est testée, puis fusionnée.
+Correction de tests (aucun test supprimé) : deux tests de workflow
+(acquisition, sortie) utilisaient le même jeton pour créer et valider.
+La règle métier « le demandeur ne peut pas valider sa propre demande »
+renvoyait correctement 403 ; les tests utilisent désormais un second
+jeton validateur, comme le test de notifications existant.
 
-## 7. Risques restants
+## 3. Scénarios exécutés en conditions réelles (stack Docker)
 
-- Exports PDF/Excel : nouvelles dépendances à valider (`barryvdh/laravel-dompdf`, `maatwebsite/excel`).
-- Permissions fines par rôle : matrice proposée dans `PERMISSIONS.md`, implémentation via Gates/Policies à valider.
-- Ajouts de colonnes sur `biens` : migrations additives uniquement.
-- Règles métier transferts/affectations : statuts à cadrer avant implémentation.
+| Scénario | Résultat |
+|---|---|
+| Authentification admin + JWT (`role_slug` correct) | OK |
+| Création d'un bien (`GPE-DEMO-001`, 8 500 000 FCFA) | OK |
+| Affectation à un service | OK |
+| Transfert brouillon → en attente → approuvé → effectué | OK, service du bien mis à jour (6 → 5) |
+| Maintenance (révision, 150 000 FCFA) | OK |
+| Campagne d'inventaire | OK (création ; constats non exercés en live) |
+| Sortie `mise_au_rebut` → exécutée | OK, bien archivé `actif=false, statut=sorti` sans suppression |
+| Permissions : auditeur en écriture → 403 ; gestionnaire sur `/admin/users` → 403 | OK |
+| Exports PDF (3 pages, ~880 Ko) et XLSX valides | OK, fichiers réels générés |
+| Justificatif PDF : upload 201, stockage privé, téléchargement identique | OK |
+| Notifications `sortie.approuvee` / `sortie.executee` | OK |
+| Audits : auth (connexions, comptes) et journal patrimoine | OK |
+
+## 4. Correctifs appliqués durant la validation
+
+| Correctif | Commit |
+|---|---|
+| Dockerfiles : suppression de `migrate --force --seed` au démarrage ; seeders non destructifs ; mot de passe admin via `ADMIN_INITIAL_PASSWORD` | `59440db` |
+| `PatrimoineClient::changerService` : `PATCH` → `PUT /api/biens/{id}` (la route PATCH n'existe pas ; tout transfert `effectué` échouait) | `55db1f8` (code) + `51f7b9c` |
+| `web/Dockerfile` : réinstallation de `libzip5` après purge (requis par `ext-zip` pour les exports) | `51f7b9c` |
+| `phpunit.xml` : port PostgreSQL de test 5433 → 5434 | `51f7b9c` |
+| Tests de workflow : jeton validateur distinct (règle initiateur/validateur) | `51f7b9c` |
+| Sauvegardes exclues du suivi Git (`.gitignore`) | `4076ef6` |
+
+## 5. Données de démonstration présentes en production
+
+- Bien `GPE-DEMO-001` (sorti du patrimoine, archivé).
+- Utilisateurs de test : `gestionnaire@gpe.local`, `auditeur@gpe.local`
+  (rôles Gestionnaire du patrimoine et Auditeur).
+- Affectation, transfert effectué, maintenance, campagne d'inventaire,
+  sortie et un justificatif PDF rattachés à ce bien.
+- Ces données sont fictives et cohérentes ; elles peuvent être conservées
+  pour la démonstration ou purgées sur demande explicite.
+
+## 6. Couverture de tests — distinctions
+
+**Couvert par les tests automatisés (74) :** authentification JWT,
+rate limiting, désactivation de compte, auto-élévation refusée,
+paramètres plateforme, CRUD biens/catégories/références, soft delete,
+acquisitions et sorties avec notification mockée, affectations,
+transferts (séquences, échec patrimoine), maintenances, documents
+(mime, taille, périmètres, téléchargement, backfill), inventaires
+(campagnes, constats, rapport, notifications), écrans web, exports
+PDF/XLSX, recherche globale, gestion des erreurs service.
+
+**Exécuté en conditions réelles :** voir section 3.
+
+**Non couvert / à compléter :**
+
+- Périmètres d'écriture par ministère/service des rôles
+  `responsable-ministeriel` et `agent-gestionnaire` (non exercés en live).
+- Inventaire complet : constats présent/absent/détérioré, réconciliation
+  et verrouillage après validation (couvert par tests, non rejoué en live).
+- Parcours E2E navigateur complet pour chaque rôle.
+- `mouvements-service/DatabaseSeeder` reste volontairement minimal.
+
+## 7. Sauvegardes
+
+- Dumps SQL du 16 novembre 2026 dans `backups/2026-11-16/` (non versionnés) :
+  `gpe_auth`, `gpe_patrimoine`, `gpe_mouvements`, `gpe_test` + archive du
+  volume `mouvements_documents` (vide à cette date).
+- Restauration vérifiée dans des bases temporaires isolées (puis supprimées).
+- Les cinq bases `gpe_validation_*` sont conservées intactes.
+
+## 8. Risques et points de vigilance
+
+- `APP_DEBUG` doit être `false` en exposition publique.
+- Secrets (`APP_KEY`, `JWT_SECRET`, `DB_PASSWORD`) fournis par variables
+  d'environnement ; jamais versionnés.
+- Pas de transaction distribuée entre services (limitation acceptée).
+- JWT sans refresh token (durée fixe 2 h).
+- Healthchecks Docker cohérents ; les conteneurs ne migrent ni ne seedent
+  plus automatiquement.

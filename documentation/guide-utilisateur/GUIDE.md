@@ -4,7 +4,7 @@
 
 1. Accéder à l'application : http://localhost:8080
 2. Saisir l'email : `admin@gpe.local`
-3. Saisir le mot de passe : `GPE_Admin_2026!`
+3. Saisir le mot de passe initial (fourni par l’administrateur de la plateforme ; il est défini par `ADMIN_INITIAL_PASSWORD` à la première installation)
 4. Cliquer sur "Se connecter"
 
 ## Tableau de bord
