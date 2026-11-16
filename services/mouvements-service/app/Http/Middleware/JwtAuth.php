@@ -53,6 +53,24 @@ class JwtAuth
             ], SymfonyResponse::HTTP_UNAUTHORIZED);
         }
 
+        if (config('services.auth.verify_account', true)) {
+            $actif = app(\App\Services\CompteActifVerifier::class)->estActif($token, (int) $payload->sub);
+
+            if ($actif === null) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Le service d’authentification est temporairement indisponible.',
+                ], SymfonyResponse::HTTP_SERVICE_UNAVAILABLE);
+            }
+
+            if (! $actif) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Compte désactivé.',
+                ], SymfonyResponse::HTTP_UNAUTHORIZED);
+            }
+        }
+
         $request->attributes->set('jwt_payload', (array) $payload);
 
         return $next($request);

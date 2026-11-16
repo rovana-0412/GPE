@@ -2,6 +2,11 @@
 
 return [
 
+    'auth' => [
+        'url' => env('AUTH_URL', 'http://auth-service:8000'),
+        'verify_account' => env('AUTH_VERIFY_ACCOUNT', true),
+    ],
+
     'mouvements' => [
         'url' => env('MOUVEMENTS_URL', 'http://mouvements-service:8000'),
     ],

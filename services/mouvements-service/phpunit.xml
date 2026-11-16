@@ -27,6 +27,7 @@
         <env name="DB_HOST" value="127.0.0.1"/>
         <env name="DB_PORT" value="5434"/>
         <env name="DB_DATABASE" value="gpe_test"/>
+        <env name="AUTH_VERIFY_ACCOUNT" value="false"/>
         <env name="DB_URL" value=""/>
         <env name="MAIL_MAILER" value="array"/>
         <env name="QUEUE_CONNECTION" value="sync"/>

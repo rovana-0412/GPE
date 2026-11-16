@@ -2,6 +2,11 @@
 
 return [
 
+    'auth' => [
+        'url' => env('AUTH_URL', 'http://auth-service:8000'),
+        'verify_account' => env('AUTH_VERIFY_ACCOUNT', true),
+    ],
+
     'patrimoine' => [
         'url' => env('PATRIMOINE_URL', 'http://patrimoine-service:8000'),
     ],
