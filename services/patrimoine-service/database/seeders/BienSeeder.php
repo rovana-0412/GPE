@@ -34,12 +34,13 @@ class BienSeeder extends Seeder
                 'localisation' => $bien['localisation'],
                 'actif' => true,
             ];
-            $model = Bien::withTrashed()->updateOrCreate(
+            // Ne jamais écraser un bien existant : on ne crée que s'il est absent.
+            $model = Bien::withTrashed()->firstOrCreate(
                 ['reference' => $bien['reference']],
                 $attributes,
             );
 
-            if ($model->trashed()) {
+            if ($model->wasRecentlyCreated && $model->trashed()) {
                 $model->restore();
             }
         }
