@@ -17,6 +17,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'jwt.auth' => \App\Http\Middleware\JwtAuth::class,
             'role' => RoleMiddleware::class,
         ]);
+        $middleware->prependToGroup('api', 'throttle:api');
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

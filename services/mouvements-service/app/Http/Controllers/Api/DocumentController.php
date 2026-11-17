@@ -88,7 +88,7 @@ class DocumentController extends Controller
         }
 
         $storedName = Str::uuid().'.'.$extension;
-        $path = Storage::disk('local')->putFileAs('documents', $file, $storedName);
+        $path = Storage::disk()->putFileAs('documents', $file, $storedName);
 
         if (! is_string($path)) {
             abort(Response::HTTP_INTERNAL_SERVER_ERROR, 'Le fichier justificatif n’a pas pu être stocké.');
@@ -123,7 +123,7 @@ class DocumentController extends Controller
                 return $document;
             });
         } catch (QueryException $exception) {
-            if (! Storage::disk('local')->delete($path)) {
+            if (! Storage::disk()->delete($path)) {
                 abort(Response::HTTP_INTERNAL_SERVER_ERROR, 'Le fichier justificatif temporaire n’a pas pu être nettoyé.');
             }
 
@@ -149,11 +149,11 @@ class DocumentController extends Controller
         );
         abort_unless($access->canView($document, $scope), Response::HTTP_NOT_FOUND);
 
-        if (! Storage::disk('local')->exists($document->chemin)) {
+        if (! Storage::disk()->exists($document->chemin)) {
             abort(Response::HTTP_NOT_FOUND, 'Le fichier justificatif est introuvable.');
         }
 
-        return Storage::disk('local')->download($document->chemin, $document->nom_original, [
+        return Storage::disk()->download($document->chemin, $document->nom_original, [
             'Content-Type' => $document->mime_type,
             'X-Document-Name' => rawurlencode($document->nom_original),
             'X-Content-Type-Options' => 'nosniff',
@@ -169,11 +169,11 @@ class DocumentController extends Controller
         $this->assertDocumentBelongsTo($document, $cibleType, $cibleId);
         $bienId = $this->resolveBienIdFromStoredTarget($document);
 
-        if (! Storage::disk('local')->exists($document->chemin)) {
+        if (! Storage::disk()->exists($document->chemin)) {
             abort(Response::HTTP_NOT_FOUND, 'Le fichier justificatif est introuvable.');
         }
 
-        if (! Storage::disk('local')->delete($document->chemin)) {
+        if (! Storage::disk()->delete($document->chemin)) {
             abort(Response::HTTP_INTERNAL_SERVER_ERROR, 'Le fichier justificatif n’a pas pu être supprimé.');
         }
 
