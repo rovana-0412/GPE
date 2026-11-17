@@ -1,0 +1,227 @@
+# Blueprint Render — GPE (démonstration)
+# Branche : demo-render — ne pas utiliser sur feature/microservices.
+# Les secrets (sync: false) se saisissent dans le dashboard Render après
+# création du Blueprint. AUCUNE valeur secrète ne figure dans ce fichier.
+#
+# ATTENTION : le plan gratuit PostgreSQL Render expire après ~30 jours et
+# les web services gratuits se mettent en veille après 15 min d'inactivité
+# (cold start ~1 min). Démonstration uniquement.
+
+services:
+  - type: web
+    name: gpe-web
+    runtime: docker
+    repo: https://github.com/rovana-0412/GPE
+    branch: demo-render
+    dockerContext: ./web
+    dockerfilePath: ./web/Dockerfile
+    plan: free
+    healthCheckPath: /up
+    autoDeploy: false
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: "false"
+      - key: APP_URL
+        sync: false # https://gpe-web.onrender.com (à renseigner après 1er déploiement)
+      - key: APP_KEY
+        sync: false # php artisan key:generate puis copier la valeur
+      - key: JWT_SECRET
+        sync: false
+      - key: SESSION_DRIVER
+        value: file
+      - key: CACHE_STORE
+        value: file
+      - key: QUEUE_CONNECTION
+        value: sync
+      - key: LOG_CHANNEL
+        value: stderr
+      - key: AUTH_URL
+        sync: false # https://gpe-auth.onrender.com
+      - key: PATRIMOINE_URL
+        sync: false # https://gpe-patrimoine.onrender.com
+      - key: MOUVEMENTS_URL
+        sync: false # https://gpe-mouvements.onrender.com
+
+  - type: web
+    name: gpe-auth
+    runtime: docker
+    repo: https://github.com/rovana-0412/GPE
+    branch: demo-render
+    dockerContext: ./services/auth-service
+    dockerfilePath: ./services/auth-service/Dockerfile
+    plan: free
+    healthCheckPath: /up
+    autoDeploy: false
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: "false"
+      - key: APP_URL
+        sync: false
+      - key: APP_KEY
+        sync: false
+      - key: JWT_SECRET
+        sync: false # IDENTIQUE à celui de gpe-web
+      - key: DB_CONNECTION
+        value: pgsql
+      - key: DB_HOST
+        fromDatabase:
+          name: gpe-postgres
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: gpe-postgres
+          property: port
+      - key: DB_DATABASE
+        value: gpe_auth # à créer sur l'instance (voir RENDER.md §PostgreSQL)
+      - key: DB_USERNAME
+        fromDatabase:
+          name: gpe-postgres
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: gpe-postgres
+          property: password
+      - key: SESSION_DRIVER
+        value: file
+      - key: CACHE_STORE
+        value: file
+      - key: QUEUE_CONNECTION
+        value: sync
+      - key: LOG_CHANNEL
+        value: stderr
+
+  - type: web
+    name: gpe-patrimoine
+    runtime: docker
+    repo: https://github.com/rovana-0412/GPE
+    branch: demo-render
+    dockerContext: ./services/patrimoine-service
+    dockerfilePath: ./services/patrimoine-service/Dockerfile
+    plan: free
+    healthCheckPath: /up
+    autoDeploy: false
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: "false"
+      - key: APP_URL
+        sync: false
+      - key: APP_KEY
+        sync: false
+      - key: JWT_SECRET
+        sync: false # IDENTIQUE aux autres services
+      - key: DB_CONNECTION
+        value: pgsql
+      - key: DB_HOST
+        fromDatabase:
+          name: gpe-postgres
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: gpe-postgres
+          property: port
+      - key: DB_DATABASE
+        value: gpe_patrimoine
+      - key: DB_USERNAME
+        fromDatabase:
+          name: gpe-postgres
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: gpe-postgres
+          property: password
+      - key: AUTH_URL
+        sync: false # https://gpe-auth.onrender.com
+      - key: MOUVEMENTS_URL
+        sync: false # https://gpe-mouvements.onrender.com
+      - key: SESSION_DRIVER
+        value: file
+      - key: CACHE_STORE
+        value: file
+      - key: QUEUE_CONNECTION
+        value: sync
+      - key: LOG_CHANNEL
+        value: stderr
+
+  - type: web
+    name: gpe-mouvements
+    runtime: docker
+    repo: https://github.com/rovana-0412/GPE
+    branch: demo-render
+    dockerContext: ./services/mouvements-service
+    dockerfilePath: ./services/mouvements-service/Dockerfile
+    plan: free
+    healthCheckPath: /up
+    autoDeploy: false
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: "false"
+      - key: APP_URL
+        sync: false
+      - key: APP_KEY
+        sync: false
+      - key: JWT_SECRET
+        sync: false # IDENTIQUE aux autres services
+      - key: DB_CONNECTION
+        value: pgsql
+      - key: DB_HOST
+        fromDatabase:
+          name: gpe-postgres
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: gpe-postgres
+          property: port
+      - key: DB_DATABASE
+        value: gpe_mouvements
+      - key: DB_USERNAME
+        fromDatabase:
+          name: gpe-postgres
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: gpe-postgres
+          property: password
+      - key: AUTH_URL
+        sync: false # https://gpe-auth.onrender.com
+      - key: PATRIMOINE_URL
+        sync: false # https://gpe-patrimoine.onrender.com
+      - key: FILESYSTEM_DISK
+        value: s3
+      - key: AWS_ACCESS_KEY_ID
+        sync: false # token R2 (lecture/écriture borné au bucket)
+      - key: AWS_SECRET_ACCESS_KEY
+        sync: false
+      - key: AWS_DEFAULT_REGION
+        value: auto
+      - key: AWS_BUCKET
+        sync: false # nom du bucket R2 privé
+      - key: AWS_ENDPOINT
+        sync: false # https://<account-id>.r2.cloudflarestorage.com
+      - key: AWS_USE_PATH_STYLE_ENDPOINT
+        value: "true"
+      - key: SESSION_DRIVER
+        value: file
+      - key: CACHE_STORE
+        value: file
+      - key: QUEUE_CONNECTION
+        value: sync
+      - key: LOG_CHANNEL
+        value: stderr
+
+databases:
+  - name: gpe-postgres
+    databaseName: gpe
+    user: gpe
+    plan: free
+    postgresMajorVersion: "16"
+    # PostgreSQL gratuit Render : expire après ~30 jours, 1 Go, 100 connexions.
+    # Les 3 bases gpe_auth / gpe_patrimoine / gpe_mouvements doivent être
+    # créées manuellement (voir documentation/deploiement/RENDER.md).
