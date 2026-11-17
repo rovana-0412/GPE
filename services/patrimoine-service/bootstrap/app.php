@@ -19,6 +19,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'role' => RoleMiddleware::class,
         ]);
         $middleware->prependToGroup('api', 'throttle:api');
+        // Render termine le TLS et ajoute X-Forwarded-* (IP client réelle).
+        $middleware->trustProxies(at: '*');
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

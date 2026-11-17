@@ -23,7 +23,7 @@ indépendant (plan gratuit, 512 Mo / 0,1 CPU, spin-down après 15 min).
 les variables `AUTH_URL` / `PATRIMOINE_URL` / `MOUVEMENTS_URL` (HTTPS publiques).
 
 **Justificatifs : Cloudflare R2** (S3-compatible, 10 Go gratuits, bucket privé).
-Le disque `s3` de `filesystems.php` est utilisé via `FILESYSTEM_DISK=s3`.
+Le disk `s3` de `filesystems.php` est utilisé via `FILESYSTEM_DISK=s3`.
 Le FS Render étant éphémère, aucun fichier ne doit reposer sur le disque local.
 
 ## 2. Limites du plan gratuit (à connaître)
@@ -55,11 +55,15 @@ Le FS Render étant éphémère, aucun fichier ne doit reposer sur le disque loc
 | Fichier | Rôle |
 |---|---|
 | `render.yaml` | Blueprint : 4 web services Docker + 1 PostgreSQL gratuit. Secrets en `sync: false`. |
-| `services/mouvements-service/composer.json` / `.lock` | Ajout de `league/flysystem-aws-s3-v3` (driver S3 pour R2). Seule dépendance ajoutée. |
+| `services/mouvements-service/composer.json` / `.lock` | Ajout de `league/flysystem-aws-s3-v3` (driver S3 pour R2). |
+| `services/mouvements-service/app/Http/Controllers/Api/DocumentController.php` | `Storage::disk()` par défaut au lieu de `disk('local')` en dur → `FILESYSTEM_DISK=s3` actif pour les justificatifs. |
+| `services/{auth,patrimoine,mouvements}-service/app/Providers/AppServiceProvider.php` | Rate limiter `api` : 240 req/min par token (hash) ou IP. |
+| `services/{auth,patrimoine,mouvements}-service/bootstrap/app.php` | `throttle:api` sur le groupe API + `trustProxies('*')` (X-Forwarded-* Render). |
+| `web/bootstrap/app.php` | `trustProxies('*')` : HTTPS et IP client corrects derrière le proxy Render. |
+| `*/Dockerfile` (×4) | `artisan serve` écoute sur `${PORT:-8000}` — compatible Render, inchangé en local. |
 | `documentation/deploiement/RENDER.md` | Ce guide. |
 
-Aucun autre fichier modifié. `docker-compose.yml`, Dockerfiles, `nginx.conf`,
-`.env*` locaux : **inchangés**.
+`docker-compose.yml`, `nginx.conf`, `.env*` locaux : **inchangés**.
 
 ## 5. Procédure de déploiement (à exécuter après autorisation)
 
@@ -67,8 +71,8 @@ Aucun autre fichier modifié. `docker-compose.yml`, Dockerfiles, `nginx.conf`,
 2. Render Dashboard → **New → Blueprint** → sélectionner le dépôt, branche
    `demo-render`. Render lit `render.yaml`.
 3. Renseigner les variables `sync: false` (voir §6).
-4. Attendre le premier build de chaque service (Dockerfile inchangé :
-   `composer install --no-dev` + assets Vite pour `web` + `artisan serve`).
+4. Attendre le premier build de chaque service (`composer install --no-dev`
+   + assets Vite pour `web` + `artisan serve` sur `$PORT` ou 8000).
 5. Créer les 3 bases sur l'instance PostgreSQL Render :
    ```
    psql "<connection-string-externe>" -c "CREATE DATABASE gpe_auth;"
@@ -78,7 +82,8 @@ Aucun autre fichier modifié. `docker-compose.yml`, Dockerfiles, `nginx.conf`,
    ⚠️ Non vérifié : le compte PostgreSQL Render autorise-t-il `CREATE DATABASE` ?
    Si non → plan B : 3 schémas ou 3 instances (coût) — à trancher avant.
 6. Exécuter les migrations **une seule fois par service** (depuis le Shell
-   Render ou une tâche manuelle — ne PAS les mettre dans le start command) :
+   Render ou depuis un poste local via la connexion externe PostgreSQL —
+   ne PAS les mettre dans le start command) :
    ```
    php artisan migrate --force
    ```
@@ -94,7 +99,7 @@ Aucun autre fichier modifié. `docker-compose.yml`, Dockerfiles, `nginx.conf`,
 |---|---|---|
 | `APP_ENV` / `APP_DEBUG` | tous | `production` / `false` (**obligatoire**) |
 | `APP_KEY` | tous | `php artisan key:generate` local → reporter (distinct par app ou commun) |
-| `JWT_SECRET` | tous | **Identique sur les 4 services** (signature JWT partagée) |
+| `JWT_SECRET` | **3 APIs uniquement** (auth, patrimoine, mouvements) | **Identique** — signature JWT partagée. `web` n'en a pas besoin (token en session, jamais vérifié localement). |
 | `APP_URL` | tous | URL publique `https://<service>.onrender.com` |
 | `AUTH_URL` / `PATRIMOINE_URL` / `MOUVEMENTS_URL` | web, patrimoine, mouvements | URLs publiques HTTPS des APIs |
 | `DB_*` | 3 APIs | injectées par `fromDatabase` (hormis `DB_DATABASE` littéral) |
@@ -109,11 +114,16 @@ Aucun autre fichier modifié. `docker-compose.yml`, Dockerfiles, `nginx.conf`,
 - `APP_DEBUG=false` partout ; `LOG_CHANNEL=stderr` (logs Render).
 - CORS : `CORS_ALLOWED_ORIGINS` non défini → same-origin uniquement ; les
   appels inter-services sont **server-to-server** (pas de CORS concerné).
-- Rate limiting : `throttle:login` déjà présent sur `/login` ; pas de
-  rate limiting global sur les APIs → documenter comme risque résiduel.
+- Rate limiting : `throttle:login` (5/min) sur `/login` **+ `throttle:api`
+  global** (240/min par token ou IP) sur toutes les routes API des 3 services.
+- `trustProxies('*')` : nécessaire pour que Laravel honore `X-Forwarded-Proto`
+  (HTTPS) et `X-Forwarded-For` (IP réelle pour les logs et le rate limiting).
+  Acceptable ici : Render est le seul point d'entrée possible.
 - HTTPS : géré par Render (TLS automatique sur `*.onrender.com`).
 - Justificatifs : bucket R2 **privé**, accès uniquement via
-  `DocumentController@download` (JWT + périmètre). Jamais d'URL publique.
+  `DocumentController@download` (JWT + périmètre). Jamais d'URL publique,
+  jamais de `temporaryUrl` — création, lecture, téléchargement et suppression
+  passent par le disk privé.
 
 ## 8. Sauvegarde et retour arrière
 
@@ -140,5 +150,6 @@ comportement après spin-down.
 2. **`CREATE DATABASE`** sur PostgreSQL Render gratuit : permission non confirmée.
 3. **Cold starts en cascade** : 4 services indépendants → latence imprévisible.
 4. **Expiration PG 30 jours** : démo non durable sans export/renouvellement.
-5. **Rate limiting global** absent sur les APIs publiques.
-6. **750 h/mois** : risque de suspension si la démo est sollicitée en continu.
+5. **750 h/mois** : risque de suspension si la démo est sollicitée en continu.
+6. **`dockerContext`/`dockerfilePath`** et routage du port : à valider au
+   premier déploiement Blueprint (correctifs `${PORT:-8000}` déjà prévus).

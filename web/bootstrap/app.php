@@ -20,6 +20,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'jwt.auth' => EnsureJwtAuthenticated::class,
             'role' => EnsureRole::class,
         ]);
+        // Render termine le TLS et ajoute X-Forwarded-* (IP client réelle).
+        $middleware->trustProxies(at: '*');
     })
     ->withExceptions(function (Exceptions $exceptions) {
         $exceptions->render(function (ServiceAuthenticationException $exception, Request $request) {

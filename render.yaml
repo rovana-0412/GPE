@@ -27,8 +27,6 @@ services:
         sync: false # https://gpe-web.onrender.com (à renseigner après 1er déploiement)
       - key: APP_KEY
         sync: false # php artisan key:generate puis copier la valeur
-      - key: JWT_SECRET
-        sync: false
       - key: SESSION_DRIVER
         value: file
       - key: CACHE_STORE
@@ -64,7 +62,7 @@ services:
       - key: APP_KEY
         sync: false
       - key: JWT_SECRET
-        sync: false # IDENTIQUE à celui de gpe-web
+        sync: false # IDENTIQUE sur les 3 services API (signature JWT partagée)
       - key: DB_CONNECTION
         value: pgsql
       - key: DB_HOST

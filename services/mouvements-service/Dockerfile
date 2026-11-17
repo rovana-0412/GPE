@@ -26,4 +26,4 @@ EXPOSE 8000
 
 USER www-data
 
-CMD ["php", "artisan", "serve", "--no-reload", "--host=0.0.0.0", "--port=8000"]
+CMD ["sh", "-c", "php artisan serve --no-reload --host=0.0.0.0 --port=${PORT:-8000}"]
